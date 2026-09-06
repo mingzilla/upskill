@@ -1,5 +1,10 @@
 #!/bin/bash
-# upskill__install.sh - build a machine's upskill__skills_lib tree and link the skill.
+# upskill__install.sh - build a machine's upskill__skills_lib tree and install the skill.
+#
+# The skill itself is NOT part of skills_lib: it is cloned straight into ~/.claude/skills/upskill,
+# which is the one canonical copy on any machine. Every other agent gets a symlink to it - claude is
+# the setup folder even for someone who does not use Claude - so there is never per-agent logic,
+# only one link per agent.
 #
 # Safe to re-run: existing folders and clones are kept, only the config and the symlink are
 # rewritten. Nothing is ever deleted.
@@ -196,13 +201,33 @@ ins::clone_repos() {
     GIT_TERMINAL_PROMPT=0 ins::clone "$ROOT/private_skills" "$private_url" "private_skills" \
       || echo "  note: private_skills was not cloned (not created yet, or it needs a login) - nothing else is affected" >&2
   fi
-  if [[ ! -d "$ROOT/upskill/.git" ]]; then
-    git clone --quiet -b "$CORE_BRANCH" "$CORE_URL" "$ROOT/upskill" \
-      || { echo "  FAILED upskill ($CORE_URL branch $CORE_BRANCH)" >&2; exit 1; }
-    echo "  clone  upskill ($CORE_BRANCH)"
-  else
-    echo "  keep   upskill (already cloned)"
+}
+
+
+SKILL_DIR="$HOME/.claude/skills/upskill"
+
+# ~/.claude/skills/upskill is the install. A symlink there is someone developing upskill against
+# their own checkout - never disturb it.
+ins::install_skill() {
+  echo
+  echo "-- skill:"
+  if [[ -L "$SKILL_DIR" ]]; then
+    echo "  keep   $SKILL_DIR -> $(readlink "$SKILL_DIR") (a development link)"
+    return 0
   fi
+  if [[ -d "$SKILL_DIR/.git" ]]; then
+    echo "  keep   $SKILL_DIR (already installed)"
+    return 0
+  fi
+  if [[ -e "$SKILL_DIR" ]]; then
+    echo "error: $SKILL_DIR exists but is not a git clone" >&2
+    echo "  move it aside and re-run - it would be overwritten by every update" >&2
+    exit 1
+  fi
+  mkdir -p "$(dirname "$SKILL_DIR")"
+  git clone --quiet -b "$CORE_BRANCH" "$CORE_URL" "$SKILL_DIR" \
+    || { echo "  FAILED upskill ($CORE_URL branch $CORE_BRANCH)" >&2; exit 1; }
+  echo "  clone  $SKILL_DIR ($CORE_BRANCH)"
 }
 
 ins::place_address_book() {
@@ -214,34 +239,26 @@ ins::write_config() {
 cfg = {"skills_lib_root": sys.argv[1], "address_book": "./upskill__address_book/address_book.json"}
 with open(sys.argv[2], "w") as f:
     json.dump(cfg, f, indent=2)
-    f.write("\n")' "$ROOT" "$ROOT/upskill/upskill__user_config.json"
+    f.write("\n")' "$ROOT" "$SKILL_DIR/upskill__user_config.json"
 }
 
-# the agent reads the skill from its own folder, so point that at the clone rather than copying:
-# a pull then updates the installed skill with no reinstall
+# Other agents read from their own folder, so each gets a link to the one real copy. Claude is the
+# setup folder whether or not Claude is installed: a link costs nothing and works the day it is.
 ins::link_agents() {
-  local root
+  local root link
   [[ "$SKIP_LINK" -eq 0 ]] || { echo; echo "-- agents: skipped (--skip-link)"; return 0; }
   echo
-  echo "-- agents:"
-  for root in "$HOME/.claude/skills" "$HOME/.codex/skills"; do
-    case "$root" in
-      "$HOME/.claude/skills") [[ -d "$HOME/.claude" ]] || command -v claude >/dev/null 2>&1 || continue ;;
-      "$HOME/.codex/skills")  [[ -d "$HOME/.codex" ]]  || command -v codex  >/dev/null 2>&1 || continue ;;
-    esac
-    mkdir -p "$root"
-    if [[ -e "$root/upskill" && ! -L "$root/upskill" ]]; then
-      echo "  skip   $root/upskill is a real folder, not a link - move it and re-run" >&2
+  echo "-- other agents:"
+  for root in "$HOME/.codex/skills" "$HOME/.agent/skills"; do
+    link="$root/upskill"
+    if [[ -e "$link" && ! -L "$link" ]]; then
+      echo "  skip   $link is a real folder, not a link - move it and re-run" >&2
       continue
     fi
-    ln -sfn "$ROOT/upskill" "$root/upskill"
-    echo "  link   $root/upskill"
+    mkdir -p "$root"
+    ln -sfn "$SKILL_DIR" "$link"
+    echo "  link   $link"
   done
-  [[ -d "$HOME/.claude" || -d "$HOME/.codex" ]] || {
-    mkdir -p "$HOME/.claude/skills"
-    ln -sfn "$ROOT/upskill" "$HOME/.claude/skills/upskill"
-    echo "  link   $HOME/.claude/skills/upskill (no agent found yet - ready for when there is)"
-  }
 }
 
 ins::report() {
@@ -249,6 +266,7 @@ ins::report() {
   echo "== done =="
   echo "  you       $ME_NAME  ($ME_KEY)"
   echo "  root      $ROOT"
+  echo "  skill     $SKILL_DIR"
   echo "  share to  $ME_REPO"
   echo
   echo "say: use upskill to share a skill, or get one from someone"
@@ -262,6 +280,7 @@ ins::preflight
 ins::pick_root
 ins::make_tree
 ins::clone_repos
+ins::install_skill
 ins::place_address_book
 ins::write_config
 ins::link_agents

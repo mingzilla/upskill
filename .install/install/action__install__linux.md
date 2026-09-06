@@ -35,17 +35,31 @@ bash upskill__install.sh --user <name> --root <dir> --address-book <url>
 
 ## What you get
 
+Your folder holds **your** things only - the skill itself is not in it:
+
 ```text
 upskill__skills_lib/
 ├── private_files/          your keys and anything that must never be published (git-ignored)
 ├── private_skills/         your private skills repo, when you have one
 ├── public_skills/          the repo you share from
-├── upskill/                the skill itself, linked into ~/.claude/skills
 ├── upskill__address_book/  your address book, and a copy of each member's repo
 └── upskill__sandbox/       a scratch project to try other people's skills in
 ```
 
-Re-running is safe: existing folders and clones are kept, only the config and the link are rewritten.
+upskill installs itself at `~/.claude/skills/upskill` and every other agent points at that one copy:
+
+```text
+~/.claude/skills/upskill    the install (a git clone - it updates itself, never edit it)
+~/.codex/skills/upskill  ->  ~/.claude/skills/upskill
+~/.agent/skills/upskill  ->  ~/.claude/skills/upskill
+```
+
+Claude's folder is used even if you do not have Claude: one copy, one link per agent, nothing to
+keep in step. On Windows the links are junctions, which need no admin rights.
+
+Re-running is safe: existing folders and clones are kept, only the config and the links are
+rewritten. A `~/.claude/skills/upskill` that is a symlink is treated as somebody's own checkout and
+left alone.
 
 > Requires `git`, `python3` and `curl`.
 

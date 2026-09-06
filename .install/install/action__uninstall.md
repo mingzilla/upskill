@@ -5,8 +5,12 @@ usage: drop the url of this file to your AI harness
 
 ## Uninstall
 
-Removes the link that makes agents load upskill. **Nothing else is deleted** - your repos, your
-sandbox, your private files and your projects all stay exactly where they are.
+Removes upskill from this machine's agents. **Your skills_lib is never touched** - repos, sandbox,
+private files and projects all stay exactly where they are.
+
+Nothing is deleted on the strength of a path. A link must be a link that points at the install; the
+install must be a git clone of the upskill repo. Anything failing a check is left alone and named
+in the output.
 
 Linux / WSL / macOS:
 
@@ -16,7 +20,8 @@ curl -fsSL https://raw.githubusercontent.com/mingzilla/upskill/prod/.install/uni
 
 | Removed | Kept |
 |---|---|
-| `~/.claude/skills/upskill` and `~/.codex/skills/upskill` (links only) | everything in `upskill__skills_lib/` |
+| `~/.claude/skills/upskill` - the install, once proved to be a clone of `mingzilla/upskill` | everything in `upskill__skills_lib/` |
+| `~/.codex/skills/upskill`, `~/.agent/skills/upskill` - once proved to be links to that install | anything else found at those paths |
 
 It prints where your skills still are. To remove those too, delete that folder yourself - and push
 anything you want to keep first.

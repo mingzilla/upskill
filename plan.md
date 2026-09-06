@@ -53,7 +53,10 @@ Source: `upskill__management/upskill__install.sh` (workspace model - rewrite, do
 - [x] Prompt for skills_lib root; offer platform defaults (`E:\code\upskill__skills_lib`, `~/code/upskill__skills_lib`), allow free text
 - [x] Create the tree: `private_files/ private_skills/ public_skills/ upskill__address_book/ upskill__sandbox/`
 - [x] `upskill__sandbox/.claude/skills/` created eagerly so "add here" works on day one
-- [x] Clone `upskill` repo at `prod` into `<root>/upskill`, symlink `~/.claude/skills/upskill` -> it
+- [x] Clone `upskill` repo at `prod` into `~/.claude/skills/upskill` - the skill is NOT part of skills_lib
+- [x] Link every other agent to that one copy (`~/.codex`, `~/.agent`); claude is the setup dir even without Claude
+- [x] Leave a `~/.claude/skills/upskill` symlink alone - that is somebody developing against their own checkout
+- [x] Verified deletion in uninstall: a link must point at the install, the install must be a clone of `mingzilla/upskill`
 - [x] Ask for the user's `public_skills` repo URL, clone it to `<root>/public_skills` (guide: `.install/guide__create_public_skills/README.md`)
 - [x] Fetch the address book json into `<root>/upskill__address_book/address_book.json`
 - [x] Write `upskill__user_config.json`
@@ -158,6 +161,10 @@ Blocked on the `.ps1` installer; restore each as its Windows half becomes real.
 ## Phase 8 - .ps1 mirror
 
 - [ ] Only after phases 0-7 are working. One `.ps1` per `.sh`, same args, same exit codes
+- [ ] Windows links are **junctions** (`mklink /J`), never symlinks - proved: a standard user creates a junction (`J_EXIT=0`) and is refused a symlink (`D_EXIT=1`). Cross-drive junctions work too
+- [ ] `New-Item -ItemType Junction -Force` does NOT re-point an existing junction - remove first, then create
+- [ ] Delete with `[IO.Directory]::Delete($path, $false)` - non-recursive by construction, so it throws on a real folder instead of destroying it
+- [ ] Fall back to a copy if a link cannot be made (a filesystem with no reparse points), and say so
 - [ ] `upskill__scan_secrets.ps1` already exists - re-verify, its in-process call is untested
 
 ---
