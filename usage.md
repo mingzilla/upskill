@@ -35,7 +35,7 @@ flowchart LR
     OPTION2("2. Add MEMBER's XXX Skill")
     OPTION3("3. Share my XXX Skill")
     OPTION4("4. Remove my XXX shared Skill")
-    OPTION5("5. Manage address book")
+    OPTION5("5. Import contacts to Address Book")
     
     ENTRY --> OPTION1
     ENTRY --> OPTION2
@@ -67,8 +67,8 @@ What would you like to do?
 3. Share your skill              - e.g. "share my xxx skill"
 4. Remove a shared skill         - e.g. "remove my xxx skill"
 
-To change address book, use option 5
-5. Add or change address book    - e.g. "add an address book"
+Manage address books:
+5. Import contacts
 ```
 
 ### 1. Show a member's skills
@@ -128,4 +128,14 @@ Where would you like to add this?
 
 ```text
 `core__rule__make_concise` has been removed from `https://github.com/<github-username>/public-skills`
+```
+
+---
+
+### 5. Import Contacts
+
+> Import these people to my address book: https://github.com/mingzilla/upskill/tree/main/upskill/.install/import_address_book/address_book.json
+
+```text
+Imported: ming
 ```
