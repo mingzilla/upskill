@@ -119,7 +119,7 @@ Where would you like to add this?
 > Share my `core__rule__make_concise` skill
 
 ```text
-`core__rule__make_concise` has been uploaded to `https://github.com/<github-username>/public-skills`
+`core__rule__make_concise` has been uploaded to `https://github.com/<github-username>/public_skills`
 ```
 
 ### 4. Remove a shared skill
@@ -127,7 +127,7 @@ Where would you like to add this?
 > Remove my shared skill `core__rule__make_concise`
 
 ```text
-`core__rule__make_concise` has been removed from `https://github.com/<github-username>/public-skills`
+`core__rule__make_concise` has been removed from `https://github.com/<github-username>/public_skills`
 ```
 
 ---
