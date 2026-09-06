@@ -17,10 +17,16 @@ us_init
 
 if ([string]::IsNullOrWhiteSpace($Query)) { us_exit 'usage: upskill__find_skill.ps1 <query> [-Root <dir>]...' }
 
-# where a person's own skills actually live: this project, and their two repos
+# where a person's own skills actually live: this project, and their two repos.
+# $PWD counts only when it IS a project - from a folder OF projects it would offer a neighbour's
+# skill as if it were mine, and sharing publishes it under my name.
 $roots = @($Root | Where-Object { $_ })
+$pwdSkipped = $false
 if ($roots.Count -eq 0) {
-    foreach ($d in @((Get-Location).Path, (Join-Path $script:US_ROOT 'private_skills'), $script:US_ME_DIR)) {
+    $here = (Get-Location).Path
+    $isProject = @('.git', '.claude', '.codex') | Where-Object { Test-Path -LiteralPath (Join-Path $here $_) }
+    if ($isProject) { $roots += $here } else { $pwdSkipped = $true }
+    foreach ($d in @((Join-Path $script:US_ROOT 'private_skills'), $script:US_ME_DIR)) {
         if (Test-Path -LiteralPath $d) { $roots += $d }
     }
 }
@@ -100,7 +106,11 @@ $hits = @($hits | Where-Object { $_.Score -ge 45 } | Sort-Object -Property @{Exp
 
 if ($hits.Count -eq 0) {
     us_err "no skill found matching '$Query'"
-    us_exit ("  looked in: " + ($roots -join ', '))
+    us_err ("  looked in: " + ($roots -join ', '))
+    if ($pwdSkipped) {
+        us_err "  not in $((Get-Location).Path) - it is not a project (no .git, .claude or .codex); pass -Root to search it"
+    }
+    exit 1
 }
 
 # nothing to choose between is not a question

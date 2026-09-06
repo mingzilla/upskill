@@ -14,6 +14,7 @@ source "$SCRIPT_DIR/../../../scripts/upskill__lib.sh"
 
 QUERY=""
 ROOTS=()
+PWD_SKIPPED=0
 
 find::parse_args() {
   QUERY="${1:-}"; shift || true
@@ -26,11 +27,18 @@ find::parse_args() {
   [[ -n "$QUERY" ]] || { echo "usage: upskill__find_skill.sh <query> [--root <dir>]..." >&2; exit 1; }
 }
 
-# where a person's own skills actually live: this project, and their two repos
+# where a person's own skills actually live: this project, and their two repos.
+# $PWD counts only when it IS a project - from a folder OF projects it would offer a neighbour's
+# skill as if it were mine, and sharing publishes it under my name.
 find::default_roots() {
   [[ "${#ROOTS[@]}" -gt 0 ]] && return 0
   local d
-  for d in "$PWD" "$US_ROOT/private_skills" "$US_ROOT/public_skills"; do
+  if [[ -d "$PWD/.git" || -d "$PWD/.claude" || -d "$PWD/.codex" ]]; then
+    ROOTS+=("$PWD")
+  else
+    PWD_SKIPPED=1
+  fi
+  for d in "$US_ROOT/private_skills" "$US_ROOT/public_skills"; do
     [[ -d "$d" ]] && ROOTS+=("$d")
   done
 }
@@ -114,5 +122,6 @@ find::default_roots
 find::search || {
   echo "no skill found matching '$QUERY'" >&2
   echo "  looked in: ${ROOTS[*]}" >&2
+  [[ "$PWD_SKIPPED" -eq 1 ]] && echo "  not in $PWD - it is not a project (no .git, .claude or .codex); pass --root to search it" >&2
   exit 1
 }

@@ -117,8 +117,8 @@ Share is two steps: the user speaks a name, so the folder is found first and upl
 - [x] Depth cap 6 + 20k-directory budget + hidden dirs pruned except `.claude`/`.codex` - a root like `~/code` must not hang
 - [x] Excludes `upskill__address_book/` - that pool holds other people's repos, not mine to publish
 - [x] One clear winner prints `Found:`; several print `Which skill did you mean?`; a weak single hit asks
-- [ ] Decide: skip `$PWD` when it is not a project (no `.git`/`.claude`/`.codex`) - today, running from a folder of projects offers a neighbour's skills
-- [ ] Push `prod`, then run the real one-liners on both platforms
+- [x] Skip `$PWD` when it is not a project (no `.git`/`.claude`/`.codex`) - from a folder OF projects it offered a neighbour's skill as if it were mine
+- [x] Push `prod`, then run the real one-liners on both platforms - bash and PowerShell verified end to end, including self-heal and uninstall
 
 - [x] `actions/action__provide_skills/scripts/upskill__share.sh` - salvage, retarget `US_ME_DIR` -> `<root>/public_skills`
 - [x] `upskill__scan_secrets.sh` - **already written**, keep as is
