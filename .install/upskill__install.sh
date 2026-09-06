@@ -188,11 +188,13 @@ ins::clone_repos() {
   echo
   echo "-- repos:"
   ins::clone "$ROOT/public_skills" "$ME_REPO" "public_skills" || exit 1
-  # the guide asks for both repos at once, so try the matching private one and move on if absent
+  # the guide asks for both repos at once, so try the matching private one and move on if absent.
+  # private_skills is private by definition: without GIT_TERMINAL_PROMPT=0 an https clone stops and
+  # waits for a username, which would hang the whole install on a repo that is optional anyway.
   local private_url="${ME_REPO%public_skills.git}private_skills.git"
   if [[ "$private_url" != "$ME_REPO" ]]; then
-    ins::clone "$ROOT/private_skills" "$private_url" "private_skills" \
-      || echo "  note: no private_skills repo - create one later, nothing else is affected" >&2
+    GIT_TERMINAL_PROMPT=0 ins::clone "$ROOT/private_skills" "$private_url" "private_skills" \
+      || echo "  note: private_skills was not cloned (not created yet, or it needs a login) - nothing else is affected" >&2
   fi
   if [[ ! -d "$ROOT/upskill/.git" ]]; then
     git clone --quiet -b "$CORE_BRANCH" "$CORE_URL" "$ROOT/upskill" \

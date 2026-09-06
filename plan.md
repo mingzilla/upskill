@@ -49,7 +49,7 @@ Source: `upskill__management/upskill__install.sh` (workspace model - rewrite, do
 - [x] Fix `install/custom/action__install__sandbox__linux.md` - both URLs in it are stale:
       installer is now `https://raw.githubusercontent.com/mingzilla/upskill/prod/.install/upskill__install.sh`,
       address book now comes from `upskill__setup`, not `upskill/.install/guide__import_address_book/`
-- [ ] Retire `upskill/.install/guide__import_address_book/address_book.json` - `upskill__setup` is the source of truth now
+- [x] Retire `upskill/.install/guide__import_address_book/address_book.json` - `upskill__setup` is the source of truth now
 - [x] Prompt for skills_lib root; offer platform defaults (`E:\code\upskill__skills_lib`, `~/code/upskill__skills_lib`), allow free text
 - [x] Create the tree: `private_files/ private_skills/ public_skills/ upskill__address_book/ upskill__sandbox/`
 - [x] `upskill__sandbox/.claude/skills/` created eagerly so "add here" works on day one
@@ -107,6 +107,15 @@ Source: `upskill__management/upskill__install.sh` (workspace model - rewrite, do
 
 ## Phase 5 - share a skill (option 3)
 
+Share is two steps: the user speaks a name, so the folder is found first and uploaded second.
+
+- [x] `upskill__find_skill.sh` - any folder holding a `SKILL.md` is a skill, so any repo layout works
+- [x] Fuzzy match (case, `_`, `-`, spaces normalised, then difflib) - a spoken name with a typo still resolves
+- [x] Depth cap 6 + 20k-directory budget + hidden dirs pruned except `.claude`/`.codex` - a root like `~/code` must not hang
+- [x] Excludes `upskill__address_book/` - that pool holds other people's repos, not mine to publish
+- [x] One clear winner prints `Found:`; several print `Which skill did you mean?`; a weak single hit asks
+- [ ] Decide: skip `$PWD` when it is not a project (no `.git`/`.claude`/`.codex`) - today, running from a folder of projects offers a neighbour's skills
+
 - [x] `actions/action__provide_skills/scripts/upskill__share.sh` - salvage, retarget `US_ME_DIR` -> `<root>/public_skills`
 - [x] `upskill__scan_secrets.sh` - **already written**, keep as is
 - [x] Scan source before copy; scan whole repo before commit; roll back on hit
@@ -133,6 +142,18 @@ Source: `upskill__management/upskill__install.sh` (workspace model - rewrite, do
 - [x] Duplicate display `name` across two keys -> report the clash, import anyway
 
 ---
+
+## Phase 8a - install docs still parked in `upskill__bk`
+
+Blocked on the `.ps1` installer; restore each as its Windows half becomes real.
+
+- [ ] `custom/action__install__zandra.md` - PowerShell one-liner
+- [ ] `custom/action__install__sandbox__win.md` - PowerShell one-liner
+- [ ] `action__install__win.md` - Windows install guide
+- [ ] `action__technical_diagnose.md` - review, then restore or drop
+- [ ] `actions/action__show_menu/actions.md` - probably drop, SKILL.md calls the menu directly
+- [ ] `actions/action__receive_skills/scripts/upskill__install.sh` - "install from any github url"; not in usage.md, decide if it survives
+- [ ] `concepts.md` - superseded by this plan; drop unless you want the inventory kept
 
 ## Phase 8 - .ps1 mirror
 
