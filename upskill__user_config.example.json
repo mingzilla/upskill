@@ -1,4 +1,4 @@
 {
-  "skills_lib_root": "~/upskill__skills_lib",
+  "skills_lib_root": "/home/you/code/upskill__skills_lib",
   "address_book": "./upskill__address_book/address_book.json"
 }

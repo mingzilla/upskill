@@ -5,48 +5,45 @@ description: Share your skills, receive skills from members in an address book, 
 
 # upskill
 
-An on-demand menu. When the user invokes upskill (they say "use upskill ...", "/upskill", or ask what
-upskill can do):
+Invoked when the user says "use upskill ...", "/upskill", or asks what upskill can do.
 
-0. **Pick the shell once, from the OS you are already on. Do not probe for it.** Every script below
-   ships as a `.sh` and a `.ps1` doing the same job - run only the one for your OS:
+## 0. Running scripts
 
-   | You are on | Run scripts as |
-      |---|---|
-   | native Windows | `powershell -NoProfile -ExecutionPolicy Bypass -File <script>.ps1 <args>` |
-   | mac / linux / WSL | `bash <script>.sh <args>` |
+Every action goes through one launcher. `<this-skill>` is the folder holding this SKILL.md:
 
-   Below, `<run>` means that command form and `<this-skill>` is the folder holding this SKILL.md.
-   Every action goes through the launcher, which fetches the current version before running:
+```text
+bash <this-skill>/scripts/upskill__run.sh <action> [args]
+```
 
-   `<run> <this-skill>/scripts/upskill__run <action> [args]`
+written `<upskill> <action>` below.
 
-   written `<upskill> <action>` from here on.
-   Do not check whether bash, python or git exists. Do not run the other variant "to see" - on
-   Windows the `.sh` fails, and that is expected, not a problem to solve. If a script fails: print
-   its error and stop. Never edit a script in this skill, and never copy the skill elsewhere to
-   work around a failure.
+| Rule | |
+|---|---|
+| Do not probe | Never test whether bash, python or git exists - the script says so if not |
+| Do not improvise git | Every git operation belongs to a script |
+| Do not edit scripts | A failing script is reported to the user, not patched |
+| On failure | Print the error and stop |
 
-1. Run the menu:
+## 1. Show the menu
 
-   `<upskill> menu`
+Run `<upskill> menu`, then print its stdout **verbatim as the whole reply**: no heading, no
+"Here is", no re-stating the address book, no reformatting into a table. The printed text IS the
+reply. Then stop and wait - the user's next message is their selection.
 
-2. Print the script's stdout **verbatim as the whole reply**. Add nothing: no bullet point, no
-   heading, no "Here is", no re-stating the address book, no "Which option?". Do not wrap it in a
-   markdown table, code fence, or reformat it - the printed text IS the reply.
+## 2. Route the selection
 
-3. Stop and wait. The user's next message is their selection. Route it exactly (do not re-run git
-   yourself; do not guess a script path - use these):
+| Pick / phrase | Do |
+|---|---|
+| menu, help, repeat | `<upskill> menu` again |
+| 1 / "show <member>'s skills" | `<upskill> list <member>` - ask which member if none named |
+| 2 / "add <member>'s <skill>" | read `actions/action__receive_skills/action__receive_skills.md`, follow its add flow |
+| 3 / "share my <skill>" | read `actions/action__provide_skills/action__provide_skills.md`, follow its share flow |
+| 4 / "remove my <skill>" | read `actions/action__provide_skills/action__provide_skills.md`, follow its remove flow |
+| 5 / "import contacts" | read `actions/action__manage_address_book/actions.md`, follow it |
+| a number from a shown list | re-run the same list to resolve the number to a name, then continue that flow |
 
-   | Pick / phrase | Do |
-      |---|---|
-   | menu, help, repeat | run the show-menu script again and print it verbatim (step 1-2) |
-   | 1 / "show <member>'s skills" | run `<upskill> list <member>` (ask which member if none named) and print its stdout verbatim |
-   | 2 / "add <member>'s <skill>" | read `<this-skill>/actions/action__receive_skills/action__receive_skills.md` and follow its add flow (`--project`) |
-   | 3 / "share my <skill>" | read `<this-skill>/actions/action__provide_skills/action__provide_skills.md` and follow it |
-   | 4 / "remove my <skill>" | read `<this-skill>/actions/action__provide_skills/action__provide_skills.md` and follow its remove flow (only your own) |
-   | 5 / "add or change address book" | read `<this-skill>/actions/action__manage_address_book/actions.md` and follow it |
-   | "install <github-url>" | read `<this-skill>/actions/action__receive_skills/action__receive_skills.md` and follow its install flow |
-   | a number from a shown list (e.g. "Add 1 ...") | resolve the number to the skill name by re-running the list script, then follow the add flow |
+Paths are relative to `<this-skill>`.
 
-4. Print every action's script output **verbatim** the same way - no extra commentary, no tables.
+## 3. Print every result verbatim
+
+Same rule as the menu: an action's stdout is the reply. Add no commentary before or after.
