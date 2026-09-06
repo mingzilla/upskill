@@ -1,58 +1,27 @@
-# upskill__list.ps1 - show shared skills (PowerShell mirror of upskill__list.sh).
-#   no owner  -> every member and their skills
-#   <owner>   -> one member's skills, numbered 1..n (so the user can say "Add <n> to <target>")
-param([string]$Owner = '')
+# upskill__list.ps1 - show one member's shared skills, numbered.
+# usage: upskill__list.ps1 <member>
+param([Parameter(Position = 0)][string]$Who)
 
-$ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '..\..\..\scripts\upskill__lib.ps1')
 
-. (Join-Path $PSScriptRoot '../../../scripts/upskill__lib.ps1')
+us_init
 
-$start = $PWD.Path
-if ($env:UP_SKILL_WORKSPACE) { $start = $env:UP_SKILL_WORKSPACE }
-us_init -StartDir $start
-
-if ([string]::IsNullOrWhiteSpace($Owner)) {
-    Write-Output "Skills shared in team '$script:US_TEAM':"
-    $any = 0
-    foreach ($row in @(us_members)) {
-        $cols = $row -split "`t"
-        if ($cols.Count -lt 2) { continue }
-        $name = $cols[0]; $folder = $cols[1]
-        if ([string]::IsNullOrWhiteSpace($name) -or [string]::IsNullOrWhiteSpace($folder)) { continue }
-        $clone = Join-Path $script:US_TEAM_DIR $folder
-        if (Test-Path -LiteralPath (Join-Path $clone '.git')) { us_git_try @('-C', $clone, 'pull', '--ff-only', '--quiet') }
-        $skills = @(us_skill_names $clone)
-        if ($skills.Count -gt 0) {
-            Write-Output ('  {0}:' -f $name)
-            foreach ($s in $skills) { Write-Output ('    {0}' -f $s) }
-            $any = 1
-        }
-    }
-    if ($any -eq 0) { Write-Output '  (no skills shared yet)' }
-    exit 0
-}
-
-$folder = us_folder_of $Owner
-if ([string]::IsNullOrWhiteSpace($folder)) {
-    [Console]::Error.WriteLine("error: '$Owner' is not in the address book")
+if ([string]::IsNullOrWhiteSpace($Who)) {
+    us_err 'usage: upskill__list.ps1 <member>'
+    us_err ('  members: ' + ((us_members | ForEach-Object { $_.Name }) -join ', '))
     exit 1
 }
-$clone = Join-Path $script:US_TEAM_DIR $folder
-if (Test-Path -LiteralPath (Join-Path $clone '.git')) { us_git_try @('-C', $clone, 'pull', '--ff-only', '--quiet') }
 
-$skills = @(us_skill_names $clone)
-if ($skills.Count -eq 0) {
-    Write-Output "($Owner has no skills shared yet)"
+# only this one member's repo is fetched - listing must never cost a whole address book
+$key = us_key_of $Who
+if (-not $key) { exit 1 }
+if (-not (us_sync_repo $key)) { exit 1 }
+
+$names = @(us_skill_names (us_pool_dir $key))
+if ($names.Count -eq 0) {
+    "$(us_name_of $key) has not shared any skills yet"
     exit 0
 }
 
-Write-Output "$Owner's skills:"
-$n = 0
-foreach ($s in $skills) {
-    $n++
-    Write-Output ('{0}. {1}' -f $n, $s)
-}
-Write-Output ''
-Write-Output 'Example:'
-Write-Output '- Add 1 to the current project'
-Write-Output '- Add 1 - (you will be asked where to add it to)'
+"Choose what to add to your projects"
+for ($i = 0; $i -lt $names.Count; $i++) { "$($i + 1). $($names[$i])" }

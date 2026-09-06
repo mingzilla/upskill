@@ -1,26 +1,21 @@
 # action__manage_address_book
 
-Two verbs.
+One verb: import people into the address book you are already using.
 
-`<upskill>` is the launcher from SKILL.md step 0 - it fetches the current version before running.
-Do not run the scripts directly, and do not edit them. `<this-skill>` is the folder holding the
-upskill SKILL.md; scripts live under `<this-skill>/actions/action__manage_address_book/scripts/`.
+`<upskill>` is the launcher from SKILL.md. Do not run the script directly, and do not edit it.
 
-### add an address book
+## Import contacts (option 5)
 
-The user gives a git repo of an address book (they may paste a URL). Clone it into the workspace:
+The user gives a link to someone's `address_book.json` - usually one of the books in
+`https://github.com/mingzilla/upskill__setup/tree/main/address_books`. A `blob`/`tree` github link
+works; it is converted to the raw one.
 
-`<upskill> create-address-book "<repo-url|local-path>"`
+`<upskill> import "<url|path>"`
 
-It does NOT switch - tell the user it was added, and that switching is the next step if they want to
-work in it now.
+| Case | What happens |
+|---|---|
+| New person | Added |
+| Already in your book | Left exactly as it is, and reported - an import never rewrites where your skills come from |
+| Two people, one display name | Both kept, the clash is reported - say which key you mean when using it |
 
-### change (switch) address book
-
-The user names another installed team (e.g. "switch to design", or the name the menu printed). Point
-the config at it:
-
-`<upskill> switch-address-book "<team-or-address-book-name>"`
-
-Accept `sandbox`, `team__sandbox`, or `upskill__address_book__sandbox` spellings. If the team is not
-installed, say so and offer to add it (create). Ask which one if the user has not said.
+Print the output verbatim.

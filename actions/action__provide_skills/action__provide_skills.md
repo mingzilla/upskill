@@ -1,31 +1,51 @@
 # action__provide_skills
 
-Share one of your skills so teammates can receive it (menu option 4, "share my <skill>").
+Share one of your own skills, or take one back. Both only ever touch **your** `public_skills` repo.
 
-Resolve the `<skill>`:
-- a folder path that contains `SKILL.md`, or
-- a skill name under the current project's `.claude/skills`.
+`<upskill>` is the launcher from SKILL.md. Do not run the scripts directly, and do not edit them.
 
-Ask the user which skill if it is unclear, and for an optional short message. Then run - **do not
-improvise git**:
+## Share (option 3) - two steps
 
-`<upskill> share "<skill>" "<message>"`
+The user says "share my `<skill>`". They are speaking, not typing a path: the name may be
+approximate, and the skill may live in this project, in `private_skills`, or anywhere else they
+keep one. So find it first, then upload it.
 
-`<upskill>` is the launcher from SKILL.md step 0 - it fetches the current version before running.
-Do not run the scripts directly, and do not edit them.
+### Step 1 - find it
 
-`<this-skill>` is the folder holding the upskill SKILL.md. Run from the workspace, or with
-`UP_SKILL_WORKSPACE` set to it.
+`<upskill> find "<what the user said>"`
 
-If the script reports a missing skills repo, tell the user to run the installer first. Report the
-result in one line.
+It searches this project and your repos for folders holding a `SKILL.md`, matching loosely, and
+prints what it found with full paths.
 
-### remove a shared skill (menu option 4 - only your own)
+| Output | Do |
+|---|---|
+| `Found:` + one entry | Use that path |
+| `Which skill did you mean?` + several | Print the list verbatim and ask which number |
+| `Closest match - is this the one?` | Print it and confirm before using it |
+| `no skill found matching ...` | Say so; ask where the skill lives, then pass `--root <dir>` |
 
-Remove one of YOUR shared skills from your sharing repo. Only your own items - the scripts always
-act on your own repo.
+Search another location with `<upskill> find "<name>" --root "<dir>"` (repeatable).
 
-- show your list: `<upskill> remove` (numbered; reply e.g. "remove 2")
-- remove one: `<upskill> remove "<skill-name>"` (or the number from the list)
+### Step 2 - upload it
 
-Print the script's stdout verbatim.
+`<upskill> share "<path from step 1>" "<optional message>"`
+
+Pass the **path**, not the name - step 1 already resolved it. Report the result in one line.
+
+## Remove (option 4)
+
+| User says | Run |
+|---|---|
+| "remove my shared skill" | `<upskill> remove` - prints your shared skills numbered; ask which |
+| "remove my `<skill>`" | `<upskill> remove "<skill>"` (a number from that list also works) |
+
+## Secret scan - automatic
+
+Share refuses to publish a credential. It scans twice: the folder before anything is copied, and
+the whole repo before the commit, because `add -A` stages everything in the working tree.
+
+Run it by hand at any time: `<upskill> scan "<path>"` - exit `0` clean, `1` findings.
+
+On findings, print the output verbatim and **stop**. Do not offer to delete the secret, edit the
+file, or retry with the scan skipped - the user decides. A credential that was already pushed stays
+in git history after the file is deleted, so it has to be rotated, not just removed.

@@ -1,105 +1,102 @@
-#!/usr/bin/env bash
-# upskill__add.sh - copy a member's shared skill to a target: global, the current project, or a
-# selected project.
-# usage:
-#   upskill__add.sh <owner> <skill> --project current    -> this project's <agent>/skills
-#   upskill__add.sh <owner> <skill> --project <path>     -> that project's <agent>/skills
-# <agent> is .claude or .codex, taken from UP_SKILL_AGENT_SKILLS (set by the launcher).
-#
-# If --project is missing, ASK the user which target (global / this project / a path), then call
-# again. Never guess.
-set -euo pipefail
+#!/bin/bash
+# upskill__add.sh - copy a member's shared skill into a project.
+# usage: upskill__add.sh <member> <skill|number> [--project <sandbox|current|<path>>] [--agent <claude|codex>]
+# exit: 0 added | 1 error | 2 no target given (the target menu was printed)
+set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=../../../scripts/upskill__lib.sh
 source "$SCRIPT_DIR/../../../scripts/upskill__lib.sh"
 
-us::init "${UP_SKILL_WORKSPACE:-$PWD}"
+WHO=""
+WANT=""
+PROJECT=""
+AGENT="${UP_SKILL_AGENT:-claude}"
+KEY=""
+SRC_DIR=""
+SKILL=""
+DEST=""
+WHERE=""
 
-owner="${1:-}"
-skill="${2:-}"
-target=""
-
-# parse --project <value>
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --project) target="${2:-}"; shift 2 ;;
-    *) shift ;;
-  esac
-done
-
-if [[ -z "$owner" || -z "$skill" ]]; then
-  echo "usage: upskill__add.sh <owner> <skill> --project <current|<path>>" >&2
-  exit 1
-fi
-us::safe_name "$skill"
-
-# which agent is asking: the launcher exports its own skills folder (~/.claude/skills or
-# ~/.codex/skills). Everything below installs into THAT agent's layout - a Codex user must not have
-# skills copied into .claude, where Codex will never look for them.
-agent_skills="${UP_SKILL_AGENT_SKILLS:-$HOME/.claude/skills}"
-agent_dir="$(basename "$(dirname "$agent_skills")")"   # .claude or .codex
-
-if [[ -z "$target" ]]; then
-  # no target given: print a numbered "where to add" menu and signal the caller to ask (exit 2)
-  echo "Where to add '$skill' (from $owner)?"
-  echo "1. current project     - this project's $agent_dir/skills"
-  echo "2. another project     - you'll be asked for its path"
-  echo
-  echo "Reply with a number (e.g. \"1\"), or say the target directly."
-  exit 2
-fi
-
-# resolve the destination skills dir. Skills always go into a project: agents sandbox their own
-# user-level skills folder against writes (Codex refuses outright), and a project copy is the one
-# both agents can install and read. Only upskill itself lives user-level, put there by the installer.
-case "$target" in
-  global|user)
-    echo "error: skills are added to a project, not user-level" >&2
-    echo "  use --project current, or --project <path-to-a-project>" >&2
+add::parse_args() {
+  WHO="${1:-}"; shift || true
+  WANT="${1:-}"; shift || true
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --project) PROJECT="${2:-}"; shift 2 ;;
+      --agent)   AGENT="${2:-}"; shift 2 ;;
+      *) echo "error: unknown option: $1" >&2; exit 1 ;;
+    esac
+  done
+  if [[ -z "$WHO" || -z "$WANT" ]]; then
+    echo "usage: upskill__add.sh <member> <skill|number> [--project <sandbox|current|<path>>]" >&2
     exit 1
-    ;;
-  current) dest_root="$PWD/$agent_dir/skills" ;;
-  *)
-    if [[ ! -d "$target" ]]; then
-      echo "error: target project not found: $target" >&2
-      exit 1
-    fi
-    dest_root="$target/$agent_dir/skills"
-    ;;
-esac
+  fi
+  case "$AGENT" in claude|codex) ;; *) echo "error: --agent must be claude or codex" >&2; exit 1 ;; esac
+}
 
-folder="$(us::folder_of "$owner")"
-if [[ -z "$folder" ]]; then
-  echo "error: '$owner' is not in the address book" >&2
-  exit 1
-fi
-clone="$US_TEAM_DIR/$folder"
-if [[ ! -d "$clone/.git" ]]; then
-  echo "error: no local clone for '$owner' at $clone (run the installer first)" >&2
-  exit 1
-fi
+add::resolve_skill() {
+  KEY="$(us::key_of "$WHO")" || exit 1
+  us::sync_repo "$KEY" || exit 1
+  SRC_DIR="$(us::pool_dir "$KEY")"
+  # a bare number means "the nth of the list just shown", so it is resolved against the same order
+  if [[ "$WANT" =~ ^[0-9]+$ ]]; then
+    SKILL="$(us::skill_names "$SRC_DIR" | sed -n "${WANT}p")"
+    [[ -n "$SKILL" ]] || { echo "error: there is no skill $WANT in $(us::name_of "$KEY")'s list" >&2; exit 1; }
+  else
+    SKILL="$WANT"
+  fi
+  us::safe_name "$SKILL" || exit 1
+  [[ -d "$SRC_DIR/$SKILL" ]] || {
+    echo "error: $(us::name_of "$KEY") has no skill called '$SKILL'" >&2
+    exit 1
+  }
+}
 
-# refresh the owner's clone when it is not me (best effort - an empty repo has no HEAD yet)
-if [[ "$folder" != "$US_ME_FOLDER" ]]; then
-  git -c safe.directory='*' -C "$clone" pull --ff-only --quiet 2>/dev/null \
-    || echo "note: could not pull '$owner' - reading the local clone as-is" >&2
-fi
+# no target given: print the menu and stop with 2, so the caller asks rather than guessing a path
+add::require_target() {
+  [[ -n "$PROJECT" ]] && return 0
+  cat <<'TXT'
+Where would you like to add this?
+1. upskill__sandbox (Recommended)
+2. your current project
+3. specify a project path
+TXT
+  exit 2
+}
 
-srcskill="$clone/$skill"
-if [[ ! -f "$srcskill/SKILL.md" ]]; then
-  echo "error: '$owner' has no shared skill '$skill'. Available from $owner:" >&2
-  while IFS= read -r s; do echo "  $s" >&2; done < <(us::skill_names "$clone")
-  exit 1
-fi
+add::resolve_dest() {
+  local base
+  case "$PROJECT" in
+    1|sandbox) base="$US_SANDBOX";        WHERE="\`upskill__sandbox\`" ;;
+    2|current) base="$PWD";               WHERE="this project" ;;
+    3)         echo "error: say which path - re-run with --project <path>" >&2; exit 1 ;;
+    *)         base="${PROJECT/#\~/$HOME}"; WHERE="\`$base\`" ;;
+  esac
+  [[ -d "$base" ]] || { echo "error: no such project folder: $base" >&2; exit 1; }
+  DEST="$base/.$AGENT/skills/$SKILL"
+}
 
-dest="$dest_root/$skill"
-rm -rf "$dest"
-mkdir -p "$(dirname "$dest")"
-cp -R "$srcskill" "$dest"
+add::copy() {
+  local prep="added to"
+  [[ -d "$DEST" ]] && prep="updated in"
+  # the agent may be sandboxed out of the project folder; say so rather than failing obscurely
+  if ! mkdir -p "$(dirname "$DEST")" 2>/dev/null; then
+    echo "error: cannot write to $(dirname "$DEST")" >&2
+    echo "  Adding a skill needs 'Full access' permission. Set it (or approve the escalation" >&2
+    echo "  prompt), then run the same command again." >&2
+    exit 1
+  fi
+  rm -rf "$DEST"
+  cp -R "$SRC_DIR/$SKILL" "$DEST" || { echo "error: copy failed: $DEST" >&2; exit 1; }
+  # a broken SKILL.md installs silently and then never loads - the receiver should hear it now
+  us::validate_skill "$DEST" >/dev/null 2>&1 \
+    || echo "note: '$SKILL' has a malformed SKILL.md and may never load - tell $(us::name_of "$KEY")" >&2
+  echo "\`$SKILL\` from \`$(us::name_of "$KEY")\` has been $prep $WHERE"
+}
 
-echo "added '$skill' (from $owner) to $dest"
-case "$target" in
-  current) echo "  open your agent in '$PWD' and the skill will be available." ;;
-  *)       echo "  open your agent in '$target' and the skill will be available." ;;
-esac
+us::init
+add::parse_args "$@"
+add::resolve_skill
+add::require_target
+add::resolve_dest
+add::copy
