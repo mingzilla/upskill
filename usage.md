@@ -134,7 +134,7 @@ Where would you like to add this?
 
 ### 5. Import Contacts
 
-> Import these people to my address book: https://github.com/mingzilla/upskill/tree/main/upskill/.install/import_address_book/address_book.json
+> Import these people to my address book: https://github.com/mingzilla/upskill/tree/main/upskill/.install/guide__import_address_book/address_book.json
 
 ```text
 Imported: ming
