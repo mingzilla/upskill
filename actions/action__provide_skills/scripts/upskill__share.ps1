@@ -35,6 +35,12 @@ if (-not (Test-Path -LiteralPath $src -PathType Container)) {
 # a skill only reaches the team if it will actually load for them
 if (-not (us_validate_skill $src)) { exit 1 }
 
+# a credential that reaches a public repo is public forever, even if the next commit deletes it -
+# so this refuses before anything is copied, committed or pushed
+$scanner = Join-Path $PSScriptRoot 'upskill__scan_secrets.ps1'
+& $scanner -Quiet $src
+if ($LASTEXITCODE -ne 0) { exit 1 }
+
 $name = Split-Path -Leaf $src
 if (-not (us_safe_name $name)) { exit 1 }
 
@@ -45,6 +51,14 @@ if (-not (Test-Path -LiteralPath (Join-Path $script:US_ME_DIR '.git'))) {
 
 $dest = Join-Path $script:US_ME_DIR $name
 us_copy_tree $src $dest
+
+# `add -A` stages the whole repo, not just what was copied - so anything a previous direct
+# edit left behind would ride along. Roll the copy back rather than commit it.
+& $scanner -Quiet $script:US_ME_DIR
+if ($LASTEXITCODE -ne 0) {
+    Remove-Item -LiteralPath $dest -Recurse -Force -ErrorAction SilentlyContinue
+    exit 1
+}
 
 & git -C $script:US_ME_DIR add -A
 if ($LASTEXITCODE -ne 0) { us_exit 'error: git add failed' }

@@ -24,6 +24,7 @@ $map = @{
     'install'             = 'actions\action__receive_skills\scripts\upskill__install'
     'share'               = 'actions\action__provide_skills\scripts\upskill__share'
     'remove'              = 'actions\action__provide_skills\scripts\upskill__remove'
+    'scan'                = 'actions\action__provide_skills\scripts\upskill__scan_secrets'
     'create-address-book' = 'actions\action__manage_address_book\scripts\upskill__create_address_book'
     'switch-address-book' = 'actions\action__manage_address_book\scripts\upskill__switch_address_book'
 }

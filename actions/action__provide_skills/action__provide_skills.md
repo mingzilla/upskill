@@ -29,3 +29,20 @@ act on your own repo.
 - remove one: `<upskill> remove "<skill-name>"` (or the number from the list)
 
 Print the script's stdout verbatim.
+
+### secret scan (automatic - not a menu option)
+
+Share refuses to publish a credential. The scan runs twice on every share: once on the folder
+before anything is copied, and once on the whole skills repo before the commit (because `add -A`
+stages everything in the working tree, not just the new skill).
+
+Run it by hand at any time:
+
+`<upskill> scan "<path>"`
+
+Exit `0` clean, `1` findings. On findings, print the script's stdout verbatim and **stop** - do not
+offer to remove the secret, edit the file, or retry with the scan skipped. The user decides.
+
+A credential that reaches a public repo stays in git history after the file is deleted, so a hit
+means: move it out (`private_files`), replace it with a placeholder, and rotate it if it was
+already pushed.

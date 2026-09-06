@@ -29,6 +29,10 @@ fi
 # a skill only reaches the team if it will actually load for them
 us::validate_skill "$src" || exit 1
 
+# a credential that reaches a public repo is public forever, even if the next commit deletes it -
+# so this refuses before anything is copied, committed or pushed
+bash "$SCRIPT_DIR/upskill__scan_secrets.sh" --quiet "$src" || exit 1
+
 name="$(basename "$src")"
 us::safe_name "$name"
 
@@ -40,6 +44,13 @@ fi
 dest="$US_ME_DIR/$name"
 rm -rf "$dest"
 cp -R "$src" "$dest"
+
+# `add -A` stages the whole repo, not just what was copied - so anything a previous direct
+# edit left behind would ride along. Roll the copy back rather than commit it.
+if ! bash "$SCRIPT_DIR/upskill__scan_secrets.sh" --quiet "$US_ME_DIR"; then
+  rm -rf "$dest"
+  exit 1
+fi
 
 git -C "$US_ME_DIR" add -A
 if git -C "$US_ME_DIR" diff --cached --quiet; then

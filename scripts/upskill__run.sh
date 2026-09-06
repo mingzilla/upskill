@@ -23,6 +23,7 @@ case "$rel" in
   install)               rel=actions/action__receive_skills/scripts/upskill__install ;;
   share)                 rel=actions/action__provide_skills/scripts/upskill__share ;;
   remove)                rel=actions/action__provide_skills/scripts/upskill__remove ;;
+  scan)                  rel=actions/action__provide_skills/scripts/upskill__scan_secrets ;;
   create-address-book)   rel=actions/action__manage_address_book/scripts/upskill__create_address_book ;;
   switch-address-book)   rel=actions/action__manage_address_book/scripts/upskill__switch_address_book ;;
 esac
