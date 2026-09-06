@@ -57,7 +57,7 @@ flowchart LR
 You can share or receive skills with members from the active address book:
 
 Address Book: sandbox (3 members) - active
-- leah (2), myles (0), ming (4)
+- leah, myles, ming
 
 ---
 
@@ -86,7 +86,7 @@ Choose what to add to your projects
 
 ```text
 Where would you like to add this?
-1. skill_sandbox
+1. skill_sandbox (Recommended)
 2. your current project
 3. specify a project path
 ```
@@ -103,7 +103,7 @@ Where would you like to add this?
 
 ```text
 Where would you like to add this?
-1. skill_sandbox
+1. skill_sandbox (Recommended)
 2. your current project
 3. specify a project path
 ```
