@@ -1,7 +1,8 @@
 {
   "users": {
-    "ming": {
-      "folder": "upskill__skills_repo__ming",
+    "mingzilla__public-skills": {
+      "name": "ming",
+      "folder": "mingzilla__public-skills",
       "repo": "https://github.com/mingzilla/public-skills.git"
     }
   }
