@@ -44,24 +44,24 @@ upskill/                              <- the git repo, symlinked from ~/.claude/
 
 Source: `upskill__management/upskill__install.sh` (workspace model - rewrite, do not copy).
 
-- [ ] `.install/upskill__install.sh` - accepts `UP_SKILL_ADDRESS_BOOK` = a **raw json URL** in `mingzilla/upskill__setup`, e.g.
+- [x] `.install/upskill__install.sh` - accepts `UP_SKILL_ADDRESS_BOOK` = a **raw json URL** in `mingzilla/upskill__setup`, e.g.
       `https://raw.githubusercontent.com/mingzilla/upskill__setup/main/address_books/address_book__ken.json`
-- [ ] Fix `install/custom/action__install__sandbox__linux.md` - both URLs in it are stale:
+- [x] Fix `install/custom/action__install__sandbox__linux.md` - both URLs in it are stale:
       installer is now `https://raw.githubusercontent.com/mingzilla/upskill/prod/.install/upskill__install.sh`,
       address book now comes from `upskill__setup`, not `upskill/.install/guide__import_address_book/`
 - [ ] Retire `upskill/.install/guide__import_address_book/address_book.json` - `upskill__setup` is the source of truth now
-- [ ] Prompt for skills_lib root; offer platform defaults (`E:\code\upskill__skills_lib`, `~/code/upskill__skills_lib`), allow free text
-- [ ] Create the tree: `private_files/ private_skills/ public_skills/ upskill__address_book/ upskill__sandbox/`
-- [ ] `upskill__sandbox/.claude/skills/` created eagerly so "add here" works on day one
-- [ ] Clone `upskill` repo at `prod` into `<root>/upskill`, symlink `~/.claude/skills/upskill` -> it
-- [ ] Ask for the user's `public_skills` repo URL, clone it to `<root>/public_skills` (guide: `.install/guide__create_public_skills/README.md`)
-- [ ] Fetch the address book json into `<root>/upskill__address_book/address_book.json`
-- [ ] Write `upskill__user_config.json`
-- [ ] Preflight before writing anything: git present, address book reachable, repo URL valid
-- [ ] Re-run is safe: existing dirs are kept, only config + symlink are rewritten
-- [ ] `.install/uninstall/upskill__uninstall.sh` - remove symlink, tell the user where the tree is; never delete their skills
+- [x] Prompt for skills_lib root; offer platform defaults (`E:\code\upskill__skills_lib`, `~/code/upskill__skills_lib`), allow free text
+- [x] Create the tree: `private_files/ private_skills/ public_skills/ upskill__address_book/ upskill__sandbox/`
+- [x] `upskill__sandbox/.claude/skills/` created eagerly so "add here" works on day one
+- [x] Clone `upskill` repo at `prod` into `<root>/upskill`, symlink `~/.claude/skills/upskill` -> it
+- [x] Ask for the user's `public_skills` repo URL, clone it to `<root>/public_skills` (guide: `.install/guide__create_public_skills/README.md`)
+- [x] Fetch the address book json into `<root>/upskill__address_book/address_book.json`
+- [x] Write `upskill__user_config.json`
+- [x] Preflight before writing anything: git present, address book reachable, repo URL valid
+- [x] Re-run is safe: existing dirs are kept, only config + symlink are rewritten
+- [x] `.install/uninstall/upskill__uninstall.sh` - remove symlink, tell the user where the tree is; never delete their skills
 
-**Decide first:** does the installer create `public_skills` locally when the user has no repo yet, or refuse and point at the guide?
+**Settled:** the installer refuses when the user's entry (and so their `public_skills` url) is not in the address book. The guide asks people to create `public_skills` + `private_skills` up front; `private_skills` is cloned when it exists and skipped without failing when it does not.
 
 ---
 
@@ -145,7 +145,7 @@ Source: `upskill__management/upskill__install.sh` (workspace model - rewrite, do
 
 | # | Question | Blocks |
 |---|---|---|
-| 1 | Installer creates `public_skills` locally, or refuses and points at the guide? | Phase 0 |
+| 1 | ~~public_skills fallback~~ **settled**: refuse, point at the guide | - |
 | 2 | ~~address book source~~ **settled**: raw json URL from the public `upskill__setup` repo | - |
-| 3 | Does `private_skills` get scanned/shared at all, or is it purely local? | Phase 5 |
-| 4 | Root `.gitignore` guarding `private_files` against an accidental `git init` | Phase 0 |
+| 3 | ~~private_skills~~ **settled**: its own repo, cloned at install; scanned like any other source | - |
+| 4 | ~~private_files guard~~ **settled**: installer appends `private_files/` to the root `.gitignore` | - |
