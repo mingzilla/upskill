@@ -86,7 +86,7 @@ Choose what to add to your projects
 
 ```text
 Where would you like to add this?
-1. skill_sandbox (Recommended)
+1. upskill__sandbox (Recommended)
 2. your current project
 3. specify a project path
 ```
@@ -94,7 +94,7 @@ Where would you like to add this?
 > 1
 
 ```text
-`core__diagram__flowchart` from `ming` has been added to `skill_sandbox`
+`core__diagram__flowchart` from `ming` has been added to `upskill__sandbox`
 ```
 
 ### 2. Add a member's skills
@@ -103,7 +103,7 @@ Where would you like to add this?
 
 ```text
 Where would you like to add this?
-1. skill_sandbox (Recommended)
+1. upskill__sandbox (Recommended)
 2. your current project
 3. specify a project path
 ```
