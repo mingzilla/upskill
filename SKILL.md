@@ -9,17 +9,21 @@ Invoked when the user says "use upskill ...", "/upskill", or asks what upskill c
 
 ## 0. Running scripts
 
-Every action goes through one launcher. `<this-skill>` is the folder holding this SKILL.md:
+**Pick the shell once, from the OS you are already on. Do not probe for it.** Every script ships as
+a `.sh` and a `.ps1` doing the same job - run only the one for your OS. `<this-skill>` is the folder
+holding this SKILL.md:
 
-```text
-bash <this-skill>/scripts/upskill__run.sh <action> [args]
-```
+| You are on | Run |
+|---|---|
+| mac / linux / WSL | `bash <this-skill>/scripts/upskill__run.sh <action> [args]` |
+| native Windows | `powershell -NoProfile -ExecutionPolicy Bypass -File <this-skill>\scripts\upskill__run.ps1 <action> [args]` |
 
 written `<upskill> <action>` below.
 
 | Rule | |
 |---|---|
 | Do not probe | Never test whether bash, python or git exists - the script says so if not |
+| Do not run the other variant "to see" | On Windows the `.sh` fails, and that is expected, not a problem to solve |
 | Do not improvise git | Every git operation belongs to a script |
 | Do not edit scripts | A failing script is reported to the user, not patched |
 | On failure | Print the error and stop |

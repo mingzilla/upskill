@@ -181,7 +181,7 @@ ins::clone() {
     echo "  skip   $label - '$dir' exists but is not a git clone" >&2
     return 0
   fi
-  if git clone --quiet "$url" "$dir" 2>/dev/null; then
+  if git ${US_CLONE_OPTS:-} clone --quiet "$url" "$dir" 2>/dev/null; then
     echo "  clone  $label"
   else
     echo "  FAILED $label ($url)" >&2
@@ -198,8 +198,14 @@ ins::clone_repos() {
   # waits for a username, which would hang the whole install on a repo that is optional anyway.
   local private_url="${ME_REPO%public_skills.git}private_skills.git"
   if [[ "$private_url" != "$ME_REPO" ]]; then
-    GIT_TERMINAL_PROMPT=0 ins::clone "$ROOT/private_skills" "$private_url" "private_skills" \
-      || echo "  note: private_skills was not cloned (not created yet, or it needs a login) - nothing else is affected" >&2
+    # never ask anybody anything: credential.interactive=false stops a credential helper opening a
+    # window (GIT_TERMINAL_PROMPT only silences the terminal), while stored credentials still work
+    if ! GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never \
+         US_CLONE_OPTS="-c credential.interactive=false" \
+         ins::clone "$ROOT/private_skills" "$private_url" "private_skills"; then
+      rm -rf "$ROOT/private_skills"
+      echo "  note: private_skills was not cloned (not created yet, or it needs a login) - nothing else is affected" >&2
+    fi
   fi
 }
 

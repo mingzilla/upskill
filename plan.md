@@ -118,6 +118,7 @@ Share is two steps: the user speaks a name, so the folder is found first and upl
 - [x] Excludes `upskill__address_book/` - that pool holds other people's repos, not mine to publish
 - [x] One clear winner prints `Found:`; several print `Which skill did you mean?`; a weak single hit asks
 - [ ] Decide: skip `$PWD` when it is not a project (no `.git`/`.claude`/`.codex`) - today, running from a folder of projects offers a neighbour's skills
+- [ ] Push `prod`, then run the real one-liners on both platforms
 
 - [x] `actions/action__provide_skills/scripts/upskill__share.sh` - salvage, retarget `US_ME_DIR` -> `<root>/public_skills`
 - [x] `upskill__scan_secrets.sh` - **already written**, keep as is
@@ -146,26 +147,26 @@ Share is two steps: the user speaks a name, so the folder is found first and upl
 
 ---
 
-## Phase 8a - install docs still parked in `upskill__bk`
+## Phase 8a - install docs (done; `upskill__bk` deleted)
 
-Blocked on the `.ps1` installer; restore each as its Windows half becomes real.
+Restored and rewritten for the new model, or deliberately dropped.
 
-- [ ] `custom/action__install__zandra.md` - PowerShell one-liner
-- [ ] `custom/action__install__sandbox__win.md` - PowerShell one-liner
-- [ ] `action__install__win.md` - Windows install guide
-- [ ] `action__technical_diagnose.md` - review, then restore or drop
-- [ ] `actions/action__show_menu/actions.md` - probably drop, SKILL.md calls the menu directly
-- [ ] `actions/action__receive_skills/scripts/upskill__install.sh` - "install from any github url"; not in usage.md, decide if it survives
-- [ ] `concepts.md` - superseded by this plan; drop unless you want the inventory kept
+- [x] `custom/action__install__zandra.md` - PowerShell one-liner
+- [x] `custom/action__install__sandbox__win.md` - PowerShell one-liner
+- [x] `action__install__win.md` - Windows install guide
+- [x] `action__technical_diagnose.md` - review, then restore or drop
+- [x] `actions/action__show_menu/actions.md` - **dropped**: SKILL.md calls the menu directly
+- [x] `actions/action__receive_skills/scripts/upskill__install.sh` - **dropped**: "install from any github url" is not in usage.md (recoverable from git history)
+- [x] `concepts.md` - **dropped**: superseded by this plan
 
 ## Phase 8 - .ps1 mirror
 
-- [ ] Only after phases 0-7 are working. One `.ps1` per `.sh`, same args, same exit codes
-- [ ] Windows links are **junctions** (`mklink /J`), never symlinks - proved: a standard user creates a junction (`J_EXIT=0`) and is refused a symlink (`D_EXIT=1`). Cross-drive junctions work too
-- [ ] `New-Item -ItemType Junction -Force` does NOT re-point an existing junction - remove first, then create
-- [ ] Delete with `[IO.Directory]::Delete($path, $false)` - non-recursive by construction, so it throws on a real folder instead of destroying it
-- [ ] Fall back to a copy if a link cannot be made (a filesystem with no reparse points), and say so
-- [ ] `upskill__scan_secrets.ps1` already exists - re-verify, its in-process call is untested
+- [x] Only after phases 0-7 are working. One `.ps1` per `.sh`, same args, same exit codes
+- [x] Windows links are **junctions** (`mklink /J`), never symlinks - proved: a standard user creates a junction (`J_EXIT=0`) and is refused a symlink (`D_EXIT=1`). Cross-drive junctions work too
+- [x] `New-Item -ItemType Junction -Force` does NOT re-point an existing junction - remove first, then create
+- [x] Delete with `[IO.Directory]::Delete($path, $false)` - non-recursive by construction, so it throws on a real folder instead of destroying it
+- [x] Fall back to a copy if a link cannot be made (a filesystem with no reparse points), and say so
+- [x] `upskill__scan_secrets.ps1` already exists - re-verify, its in-process call is untested
 
 ---
 

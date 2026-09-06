@@ -18,12 +18,18 @@ Linux / WSL / macOS:
 curl -fsSL https://raw.githubusercontent.com/mingzilla/upskill/prod/.install/uninstall/upskill__uninstall.sh | bash
 ```
 
+Windows PowerShell:
+
+```powershell
+powershell -ExecutionPolicy Bypass -c "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mingzilla/upskill/prod/.install/uninstall/upskill__uninstall.ps1)))"
+```
+
 | Removed | Kept |
 |---|---|
-| `~/.claude/skills/upskill` - the install, once proved to be a clone of `mingzilla/upskill` | everything in `upskill__skills_lib/` |
-| `~/.codex/skills/upskill`, `~/.agent/skills/upskill` - once proved to be links to that install | anything else found at those paths |
+| `.claude\skills\upskill` - the install, once proved to be a clone of `mingzilla/upskill` | everything in `upskill__skills_lib` |
+| `.codex\skills\upskill`, `.agent\skills\upskill` - once proved to be links to that install | anything else found at those paths |
 
 It prints where your skills still are. To remove those too, delete that folder yourself - and push
 anything you want to keep first.
 
-Re-install by running `upskill__install.sh` again.
+Re-install by running the installer again.
