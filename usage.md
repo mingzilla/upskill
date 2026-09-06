@@ -36,7 +36,7 @@ flowchart LR
     OPTION3("3. Share my XXX Skill")
     OPTION4("4. Remove my XXX shared Skill")
     OPTION5("5. Import contacts to Address Book")
-    
+
     ENTRY --> OPTION1
     ENTRY --> OPTION2
     ENTRY --> OPTION3
@@ -57,7 +57,7 @@ flowchart LR
 You can share or receive skills with members from the active address book:
 
 Address Book: sandbox (3 members) - active
-- leah, myles, ming
+- leah, ming, myles
 
 ---
 
@@ -70,6 +70,10 @@ What would you like to do?
 Manage address books:
 5. Import contacts
 ```
+
+Members are listed alphabetically. Nothing is downloaded to show this screen, so it is instant
+however large the address book is. `- active` appears only when more than one address book is
+installed.
 
 ### 1. Show a member's skills
 
@@ -114,28 +118,83 @@ Where would you like to add this?
 `core__coding__sh` from `ming` has been added to this project
 ```
 
+Adding a skill you already have replaces it, and says so:
+
+```text
+`core__coding__sh` from `ming` has been updated in this project
+```
+
 ### 3. Share a skill
+
+You say the name; upskill finds the folder. It can be in this project, in your `private_skills`,
+or anywhere else you keep skills - a folder holding a `SKILL.md` is a skill.
 
 > Share my `core__rule__make_concise` skill
 
 ```text
-`core__rule__make_concise` has been uploaded to `https://github.com/<github-username>/public_skills`
+Found:
+1. core__rule__make_concise
+   /home/you/code/upskill__skills_lib/private_skills/core__base_skills/.claude/skills/core__rule__make_concise
+```
+
+When the name is close but not exact, or matches more than one folder, you are asked which:
+
+```text
+Which skill did you mean?
+1. core__coding__sh
+   /home/you/code/upskill__skills_lib/private_skills/core__base_skills/.claude/skills/core__coding__sh
+2. coding__sh
+   /home/you/code/upskill__skills_lib/public_skills/coding__sh
+```
+
+Then it is uploaded:
+
+```text
+`core__rule__make_concise` has been uploaded to `https://github.com/<github-username>/public_skills.git`
+```
+
+Anything carrying an api key, token or private key is refused before it is committed:
+
+```text
+BLOCKED: 1 possible secret(s) found
+
+  /home/you/code/.../setup.py:1
+      Anthropic API key  ->  sk-ant***
+
+Nothing was committed or pushed.
 ```
 
 ### 4. Remove a shared skill
 
-> Remove my shared skill `core__rule__make_concise`
+> Remove my shared skill
 
 ```text
-`core__rule__make_concise` has been removed from `https://github.com/<github-username>/public_skills`
+Your shared skills - say which to remove
+1. core__coding__sh
+2. core__rule__make_concise
+3. say_hello
 ```
+
+> 2
+
+```text
+`core__rule__make_concise` has been removed from `https://github.com/<github-username>/public_skills.git`
+```
+
+Naming it directly works too:
+
+> Remove my shared skill `core__rule__make_concise`
 
 ---
 
 ### 5. Import Contacts
 
-> Import these people to my address book: https://github.com/mingzilla/upskill/tree/main/upskill/.install/guide__import_address_book/address_book.json
+> Import these people to my address book: https://github.com/mingzilla/upskill__setup/blob/main/address_books/address_book__sandbox.json
 
 ```text
-Imported: ming
+Imported: leah, myles
+Already in your address book: ming
 ```
+
+People you already have are left exactly as they are - an import never changes where your existing
+skills come from.
