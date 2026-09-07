@@ -54,6 +54,21 @@ if (-not (Test-Path -LiteralPath (Join-Path $script:US_ME_DIR '.git'))) {
     us_exit '  run the installer, or see .install\guide__create_public_skills\README.md'
 }
 
+# public_skills is a sharing medium, not an editor: abandon any uncommitted local edit, then pull in
+# remote changes with mine winning. Committed work is replayed on top of the remote - in a rebase
+# 'theirs' is my own commit, so -X theirs makes me win every conflict.
+function share_sync_origin {
+    $up = & git -c safe.directory='*' -C $script:US_ME_DIR rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>$null
+    if (-not $up) { return }   # no upstream yet - this is the first push
+    & git -c safe.directory='*' -C $script:US_ME_DIR reset --hard --quiet 2>$null
+    & git -c safe.directory='*' -C $script:US_ME_DIR clean -fdq 2>$null
+    & git -c safe.directory='*' -C $script:US_ME_DIR fetch --quiet origin 2>$null
+    if ($LASTEXITCODE -ne 0) { return }
+    & git -c safe.directory='*' -C $script:US_ME_DIR rebase -X theirs --quiet $up 2>$null
+    if ($LASTEXITCODE -ne 0) { & git -c safe.directory='*' -C $script:US_ME_DIR rebase --abort 2>$null }
+}
+share_sync_origin
+
 $dest = Join-Path $script:US_ME_DIR $name
 if (Test-Path -LiteralPath $dest) { Remove-Item -LiteralPath $dest -Recurse -Force }
 Copy-Item -LiteralPath $src -Destination $dest -Recurse -Force

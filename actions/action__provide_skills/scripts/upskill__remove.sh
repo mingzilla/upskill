@@ -59,6 +59,17 @@ rm::unpushed() {
 }
 
 rm::push() {
+  # public_skills is a sharing medium, not an editor: abandon uncommitted local edits, then pull in
+  # remote changes with mine winning (see share::sync_origin in upskill__share.sh)
+  local up
+  up="$(git -c safe.directory='*' -C "$US_ME_DIR" rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null)"
+  if [[ -n "$up" ]]; then
+    git -c safe.directory='*' -C "$US_ME_DIR" reset --hard --quiet
+    git -c safe.directory='*' -C "$US_ME_DIR" clean -fdq
+    git -c safe.directory='*' -C "$US_ME_DIR" fetch --quiet origin 2>/dev/null || true
+    git -c safe.directory='*' -C "$US_ME_DIR" rebase -X theirs --quiet "$up" 2>/dev/null \
+      || git -c safe.directory='*' -C "$US_ME_DIR" rebase --abort 2>/dev/null
+  fi
   rm -rf "${US_ME_DIR:?}/$NAME"
   git -c safe.directory='*' -C "$US_ME_DIR" add -A || { echo "error: git add failed" >&2; exit 1; }
   if git -c safe.directory='*' -C "$US_ME_DIR" diff --cached --quiet; then

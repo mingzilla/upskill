@@ -62,6 +62,21 @@ share::check_repo() {
   DEST="$US_ME_DIR/$NAME"
 }
 
+# Bring the local public repo up to date before writing to it. public_skills is a sharing medium,
+# not an editor: any uncommitted local edit is abandoned, no questions asked - the source of a skill
+# lives in a project or private_skills. Committed work is kept and replayed on top of the remote,
+# and -X theirs means I win every conflict (in a rebase 'theirs' is my own commit).
+share::sync_origin() {
+  local up
+  up="$(git -c safe.directory='*' -C "$US_ME_DIR" rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null)"
+  [[ -n "$up" ]] || return 0   # no upstream yet - this is the first push
+  git -c safe.directory='*' -C "$US_ME_DIR" reset --hard --quiet
+  git -c safe.directory='*' -C "$US_ME_DIR" clean -fdq
+  git -c safe.directory='*' -C "$US_ME_DIR" fetch --quiet origin 2>/dev/null || return 0
+  git -c safe.directory='*' -C "$US_ME_DIR" rebase -X theirs --quiet "$up" 2>/dev/null \
+    || git -c safe.directory='*' -C "$US_ME_DIR" rebase --abort 2>/dev/null
+}
+
 share::copy() {
   rm -rf "$DEST"
   cp -R "$SRC" "$DEST" || { echo "error: copy failed: $DEST" >&2; exit 1; }
@@ -158,6 +173,7 @@ share::parse_args "$@"
 share::resolve_src
 share::scan_source
 share::check_repo
+share::sync_origin
 share::copy
 share::scan_repo
 share::push

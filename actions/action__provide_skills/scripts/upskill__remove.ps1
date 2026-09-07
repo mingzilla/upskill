@@ -38,6 +38,20 @@ function rm_unpushed {
     if ($n) { return [int]$n } else { return 1 }
 }
 
+# public_skills is a sharing medium, not an editor: abandon uncommitted local edits, then pull in
+# remote changes with mine winning (same contract as share)
+function rm_sync_origin {
+    $up = & git -c safe.directory='*' -C $script:US_ME_DIR rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>$null
+    if (-not $up) { return }
+    & git -c safe.directory='*' -C $script:US_ME_DIR reset --hard --quiet 2>$null
+    & git -c safe.directory='*' -C $script:US_ME_DIR clean -fdq 2>$null
+    & git -c safe.directory='*' -C $script:US_ME_DIR fetch --quiet origin 2>$null
+    if ($LASTEXITCODE -ne 0) { return }
+    & git -c safe.directory='*' -C $script:US_ME_DIR rebase -X theirs --quiet $up 2>$null
+    if ($LASTEXITCODE -ne 0) { & git -c safe.directory='*' -C $script:US_ME_DIR rebase --abort 2>$null }
+}
+rm_sync_origin
+
 Remove-Item -LiteralPath $target -Recurse -Force
 & git -c safe.directory='*' -C $script:US_ME_DIR add -A
 if ($LASTEXITCODE -ne 0) { us_exit 'error: git add failed' }
