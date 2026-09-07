@@ -79,6 +79,8 @@ rm::push() {
   if ! git -c safe.directory='*' -C "$US_ME_DIR" push -q; then
     echo "error: push failed - $(rm::unpushed) commit(s) are waiting to be uploaded" >&2
     echo "  fix your github access, then run the same remove again - it will retry the push" >&2
+    echo "  if it was blocked rather than rejected: this pushes to a repo, which needs bypass" >&2
+    echo "  permission (in Codex: Full access)." >&2
     exit 1
   fi
 }

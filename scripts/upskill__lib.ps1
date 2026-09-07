@@ -115,6 +115,8 @@ function us_sync_repo([string]$key) {
     if ($code -ne 0) {
         us_err "error: cannot clone $url"
         foreach ($line in @($out)) { us_err "  $line" }
+        us_err '  if that is a permission or sandbox block: this writes outside the current project,'
+        us_err '  which needs bypass permission (in Codex: Full access). Allow it and run this again.'
         Remove-Item -LiteralPath $dir -Recurse -Force -ErrorAction SilentlyContinue
         return $false
     }

@@ -123,6 +123,8 @@ us::sync_repo() {
   if ! out="$(git clone --quiet "$url" "$dir" 2>&1)"; then
     echo "error: cannot clone $url" >&2
     [[ -n "$out" ]] && sed 's/^/  /' <<< "$out" >&2
+    echo "  if that is a permission or sandbox block: this writes outside the current project," >&2
+    echo "  which needs bypass permission (in Codex: Full access). Allow it and run this again." >&2
     rm -rf "$dir"   # leave nothing half-written, or the next try hits the branch above
     return 1
   fi

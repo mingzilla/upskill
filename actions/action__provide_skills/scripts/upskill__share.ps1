@@ -116,7 +116,9 @@ if ($LASTEXITCODE -eq 0) {
 
 if (-not (share_do_push)) {
     us_err "error: push failed - $(share_unpushed) commit(s) are waiting to be uploaded"
-    us_exit '  fix your github access, then run the same share again - it will retry the push'
+    us_err '  fix your github access, then run the same share again - it will retry the push'
+    us_err '  if it was blocked rather than rejected: sharing pushes to a repo, which needs bypass'
+    us_exit '  permission (in Codex: Full access).'
 }
 
 # my own listing is read from the pool clone, not from public_skills - without this refresh the

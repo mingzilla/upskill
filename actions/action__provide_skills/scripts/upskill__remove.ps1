@@ -59,7 +59,9 @@ if ($LASTEXITCODE -eq 0) {
 & git -c safe.directory='*' -C $script:US_ME_DIR push -q
 if ($LASTEXITCODE -ne 0) {
     us_err "error: push failed - $(rm_unpushed) commit(s) are waiting to be uploaded"
-    us_exit '  fix your github access, then run the same remove again - it will retry the push'
+    us_err '  fix your github access, then run the same remove again - it will retry the push'
+    us_err '  if it was blocked rather than rejected: this pushes to a repo, which needs bypass'
+    us_exit '  permission (in Codex: Full access).'
 }
 
 # without this the pool copy still lists the skill I just removed
