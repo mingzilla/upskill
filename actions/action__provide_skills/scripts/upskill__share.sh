@@ -75,24 +75,56 @@ share::scan_repo() {
   exit 1
 }
 
+# how many commits exist here but not on the remote. A run can commit and then fail to push - no
+# auth yet, offline, a rejected push - and that commit is then invisible to `diff --cached`. Without
+# this check the next share reports "already shared" and the work never reaches anybody.
+share::unpushed() {
+  local up
+  up="$(git -c safe.directory='*' -C "$US_ME_DIR" rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null)"
+  [[ -n "$up" ]] || { echo 1; return 0; }   # no upstream yet - treat as pending
+  git -c safe.directory='*' -C "$US_ME_DIR" rev-list --count "$up..HEAD" 2>/dev/null || echo 1
+}
+
+share::do_push() {
+  local up
+  up="$(git -c safe.directory='*' -C "$US_ME_DIR" rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null)"
+  if [[ -z "$up" ]]; then
+    git -c safe.directory='*' -C "$US_ME_DIR" push -q -u origin HEAD
+  else
+    git -c safe.directory='*' -C "$US_ME_DIR" push -q
+  fi
+}
+
+PENDING_ONLY=0
+
 share::push() {
   git -c safe.directory='*' -C "$US_ME_DIR" add -A || { echo "error: git add failed" >&2; exit 1; }
+
   if git -c safe.directory='*' -C "$US_ME_DIR" diff --cached --quiet; then
-    echo "no change - \`$NAME\` is already shared"
-    exit 0
-  fi
-  if ! git -c safe.directory='*' -C "$US_ME_DIR" commit -q -m "share $NAME${MSG:+: $MSG}"; then
-    echo "error: commit failed" >&2
-    # by far the most common cause on a fresh machine, and git's own message is easy to miss
-    if [[ -z "$(git -C "$US_ME_DIR" config user.email 2>/dev/null)" ]]; then
-      echo "  git does not know who you are. Set it once:" >&2
-      echo "    git config --global user.name \"Your Name\"" >&2
-      echo "    git config --global user.email \"you@example.com\"" >&2
+    # nothing new to commit - but an earlier run may have left a commit stranded
+    if [[ "$(share::unpushed)" -eq 0 ]]; then
+      echo "no change - \`$NAME\` is already shared"
+      exit 0
     fi
+    PENDING_ONLY=1
+  else
+    if ! git -c safe.directory='*' -C "$US_ME_DIR" commit -q -m "share $NAME${MSG:+: $MSG}"; then
+      echo "error: commit failed" >&2
+      # by far the most common cause on a fresh machine, and git's own message is easy to miss
+      if [[ -z "$(git -C "$US_ME_DIR" config user.email 2>/dev/null)" ]]; then
+        echo "  git does not know who you are. Set it once:" >&2
+        echo "    git config --global user.name \"Your Name\"" >&2
+        echo "    git config --global user.email \"you@example.com\"" >&2
+      fi
+      exit 1
+    fi
+  fi
+
+  if ! share::do_push; then
+    echo "error: push failed - $(share::unpushed) commit(s) are waiting to be uploaded" >&2
+    echo "  fix your github access, then run the same share again - it will retry the push" >&2
     exit 1
   fi
-  git -c safe.directory='*' -C "$US_ME_DIR" push -q \
-    || { echo "error: push failed - check your github access for $(share::origin)" >&2; exit 1; }
 }
 
 share::origin() {
@@ -112,7 +144,11 @@ share::refresh_pool() {
 }
 
 share::report() {
-  echo "\`$NAME\` has been uploaded to \`$(share::origin)\`"
+  if [[ "$PENDING_ONLY" -eq 1 ]]; then
+    echo "\`$NAME\` was already committed but had never been uploaded - it is now on \`$(share::origin)\`"
+  else
+    echo "\`$NAME\` has been uploaded to \`$(share::origin)\`"
+  fi
 }
 
 us::init

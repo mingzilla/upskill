@@ -66,27 +66,58 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+# how many commits exist here but not on the remote. A run can commit and then fail to push - no
+# auth yet, offline, a rejected push - and that commit is invisible to `diff --cached`. Without this
+# the next share reports "already shared" and the work never reaches anybody.
+function share_unpushed {
+    $up = & git -c safe.directory='*' -C $script:US_ME_DIR rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>$null
+    if (-not $up) { return 1 }   # no upstream yet - treat as pending
+    $n = & git -c safe.directory='*' -C $script:US_ME_DIR rev-list --count "$up..HEAD" 2>$null
+    if ($n) { return [int]$n } else { return 1 }
+}
+
+function share_do_push {
+    $up = & git -c safe.directory='*' -C $script:US_ME_DIR rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>$null
+    if (-not $up) {
+        & git -c safe.directory='*' -C $script:US_ME_DIR push -q -u origin HEAD
+    } else {
+        & git -c safe.directory='*' -C $script:US_ME_DIR push -q
+    }
+    return ($LASTEXITCODE -eq 0)
+}
+
+$pendingOnly = $false
+
 & git -c safe.directory='*' -C $script:US_ME_DIR add -A
 if ($LASTEXITCODE -ne 0) { us_exit 'error: git add failed' }
+
 & git -c safe.directory='*' -C $script:US_ME_DIR diff --cached --quiet
 if ($LASTEXITCODE -eq 0) {
-    "no change - ``$name`` is already shared"
-    exit 0
-}
-$commit = if ($Message) { "share $name`: $Message" } else { "share $name" }
-& git -c safe.directory='*' -C $script:US_ME_DIR commit -q -m $commit
-if ($LASTEXITCODE -ne 0) {
-    us_err 'error: commit failed'
-    $who = & git -C $script:US_ME_DIR config user.email 2>$null
-    if (-not $who) {
-        us_err '  git does not know who you are. Set it once:'
-        us_err '    git config --global user.name "Your Name"'
-        us_err '    git config --global user.email "you@example.com"'
+    # nothing new to commit - but an earlier run may have left a commit stranded
+    if ((share_unpushed) -eq 0) {
+        "no change - ``$name`` is already shared"
+        exit 0
     }
-    exit 1
+    $pendingOnly = $true
+} else {
+    $commit = if ($Message) { "share $name`: $Message" } else { "share $name" }
+    & git -c safe.directory='*' -C $script:US_ME_DIR commit -q -m $commit
+    if ($LASTEXITCODE -ne 0) {
+        us_err 'error: commit failed'
+        $who = & git -C $script:US_ME_DIR config user.email 2>$null
+        if (-not $who) {
+            us_err '  git does not know who you are. Set it once:'
+            us_err '    git config --global user.name "Your Name"'
+            us_err '    git config --global user.email "you@example.com"'
+        }
+        exit 1
+    }
 }
-& git -c safe.directory='*' -C $script:US_ME_DIR push -q
-if ($LASTEXITCODE -ne 0) { us_exit 'error: push failed - check your github access' }
+
+if (-not (share_do_push)) {
+    us_err "error: push failed - $(share_unpushed) commit(s) are waiting to be uploaded"
+    us_exit '  fix your github access, then run the same share again - it will retry the push'
+}
 
 # my own listing is read from the pool clone, not from public_skills - without this refresh the
 # skill I just shared is missing from "show my skills"
@@ -99,4 +130,8 @@ if ($mine) {
 }
 
 $origin = & git -c safe.directory='*' -C $script:US_ME_DIR remote get-url origin 2>$null
-"``$name`` has been uploaded to ``$origin``"
+if ($pendingOnly) {
+    "``$name`` was already committed but had never been uploaded - it is now on ``$origin``"
+} else {
+    "``$name`` has been uploaded to ``$origin``"
+}

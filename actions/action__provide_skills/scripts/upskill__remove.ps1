@@ -31,15 +31,36 @@ if (-not (us_safe_name $name)) { exit 1 }
 $target = Join-Path $script:US_ME_DIR $name
 if (-not (Test-Path -LiteralPath $target)) { us_exit "error: you have not shared a skill called '$name'" }
 
+function rm_unpushed {
+    $up = & git -c safe.directory='*' -C $script:US_ME_DIR rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>$null
+    if (-not $up) { return 1 }
+    $n = & git -c safe.directory='*' -C $script:US_ME_DIR rev-list --count "$up..HEAD" 2>$null
+    if ($n) { return [int]$n } else { return 1 }
+}
+
 Remove-Item -LiteralPath $target -Recurse -Force
 & git -c safe.directory='*' -C $script:US_ME_DIR add -A
 if ($LASTEXITCODE -ne 0) { us_exit 'error: git add failed' }
+
 & git -c safe.directory='*' -C $script:US_ME_DIR diff --cached --quiet
-if ($LASTEXITCODE -eq 0) { "no change - ``$name`` was not shared"; exit 0 }
-& git -c safe.directory='*' -C $script:US_ME_DIR commit -q -m "remove $name"
-if ($LASTEXITCODE -ne 0) { us_exit 'error: commit failed' }
+if ($LASTEXITCODE -eq 0) {
+    # already gone locally - but an earlier run may have failed to push the removal
+    if ((rm_unpushed) -eq 0) { "no change - ``$name`` was not shared"; exit 0 }
+} else {
+    & git -c safe.directory='*' -C $script:US_ME_DIR commit -q -m "remove $name"
+    if ($LASTEXITCODE -ne 0) {
+        us_err 'error: commit failed'
+        $who = & git -C $script:US_ME_DIR config user.email 2>$null
+        if (-not $who) { us_err '  git does not know who you are - set user.name and user.email' }
+        exit 1
+    }
+}
+
 & git -c safe.directory='*' -C $script:US_ME_DIR push -q
-if ($LASTEXITCODE -ne 0) { us_exit 'error: push failed - check your github access' }
+if ($LASTEXITCODE -ne 0) {
+    us_err "error: push failed - $(rm_unpushed) commit(s) are waiting to be uploaded"
+    us_exit '  fix your github access, then run the same remove again - it will retry the push'
+}
 
 # without this the pool copy still lists the skill I just removed
 $mine = us_my_key
