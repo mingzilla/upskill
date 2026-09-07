@@ -16,7 +16,8 @@ param(
     [string]$User = $env:UP_SKILL_USER,
     [string]$Core = 'https://github.com/mingzilla/upskill.git',
     [string]$Branch = 'prod',
-    [switch]$SkipLink
+    [switch]$SkipLink,
+    [switch]$SkipAuthCheck
 )
 
 $ErrorActionPreference = 'Stop'
@@ -101,6 +102,32 @@ function ins_pick_user {
     }
     $script:ME_KEY = $hits[0].Key
     $script:ME_REPO = $hits[0].Repo
+}
+
+# Being logged in is not optional. Cloning private_skills needs it, and sharing - the whole point -
+# pushes to github. Without it the install "succeeds" and every later share fails at the push, which
+# is a far worse place to discover it. Checked before anything is created.
+function ins_check_github_auth {
+    if ($SkipAuthCheck) { return }
+    if (Get-Command gh -ErrorAction SilentlyContinue) {
+        & gh auth status --hostname github.com 2>&1 | Out-Null
+        if ($LASTEXITCODE -eq 0) { return }
+    } else {
+        # no gh: accept a credential helper that already holds a github password
+        $old = $env:GIT_TERMINAL_PROMPT
+        $env:GIT_TERMINAL_PROMPT = '0'
+        $out = "protocol=https`nhost=github.com`n`n" | & git -c credential.interactive=false credential fill 2>$null
+        $env:GIT_TERMINAL_PROMPT = $old
+        if ($out -match '^password=') { return }
+    }
+    ins_err 'error: you are not logged in to github'
+    ins_err '  upskill clones your private_skills and pushes every skill you share, so a login is'
+    ins_err '  required now rather than at the first failed share.'
+    ins_err ''
+    ins_err '  run this, then run the installer again:'
+    ins_err '    gh auth login --hostname github.com --git-protocol https'
+    ins_err ''
+    ins_exit '  (no gh? install it from https://cli.github.com, or configure a git credential helper)'
 }
 
 # check every remote before a single folder is made: a bad url must leave the machine untouched
@@ -278,6 +305,7 @@ function ins_report {
 }
 
 ins_require
+ins_check_github_auth
 ins_fetch_address_book
 ins_pick_user
 ins_preflight

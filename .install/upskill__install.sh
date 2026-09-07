@@ -15,6 +15,7 @@
 #   --root          where upskill__skills_lib lives; prompted when omitted
 #   --user          your display name in that address book; prompted when omitted
 #   --skip-link     build the tree but do not touch ~/.claude/skills (for testing)
+#   --skip-auth-check   do not require a github login (for testing)
 set -uo pipefail
 
 CORE_URL="https://github.com/mingzilla/upskill.git"
@@ -26,6 +27,7 @@ AB_FILE=""
 ME_KEY=""
 ME_REPO=""
 SKIP_LINK=0
+SKIP_AUTH=0
 
 ins::usage() {
   echo "usage: upskill__install.sh [--address-book <url|path>] [--root <dir>] [--user <name>]" >&2
@@ -41,6 +43,7 @@ ins::parse_args() {
       --core)         CORE_URL="${2:-}"; shift 2 ;;
       --branch)       CORE_BRANCH="${2:-}"; shift 2 ;;
       --skip-link)    SKIP_LINK=1; shift ;;
+      --skip-auth-check) SKIP_AUTH=1; shift ;;
       -h|--help)      ins::usage ;;
       *) echo "error: unknown option: $1" >&2; ins::usage ;;
     esac
@@ -121,6 +124,32 @@ elif len(hits) > 1:
     echo "  create your repos first - see .install/guide__create_public_skills/README.md" >&2
     exit 1
   fi
+}
+
+# Being logged in is not optional. Cloning private_skills needs it, and sharing - the whole point -
+# pushes to github. Without it the install "succeeds" and every later share fails at the push, which
+# is a far worse place to discover it. Checked before anything is created.
+ins::check_github_auth() {
+  [[ "$SKIP_AUTH" -eq 0 ]] || return 0
+  # gh is the clearest signal and gives the exact command to fix it
+  if command -v gh >/dev/null 2>&1; then
+    gh auth status --hostname github.com >/dev/null 2>&1 && return 0
+  else
+    # no gh: accept a credential helper that already holds a github password
+    if GIT_TERMINAL_PROMPT=0 printf 'protocol=https\nhost=github.com\n\n' \
+         | git -c credential.interactive=false credential fill 2>/dev/null | grep -q '^password='; then
+      return 0
+    fi
+  fi
+  echo "error: you are not logged in to github" >&2
+  echo "  upskill clones your private_skills and pushes every skill you share, so a login is" >&2
+  echo "  required now rather than at the first failed share." >&2
+  echo >&2
+  echo "  run this, then run the installer again:" >&2
+  echo "    gh auth login --hostname github.com --git-protocol https" >&2
+  echo >&2
+  echo "  (no gh? install it from https://cli.github.com, or configure a git credential helper)" >&2
+  exit 1
 }
 
 # check every remote before a single folder is made: a bad url must leave the machine untouched
@@ -292,6 +321,7 @@ ins::report() {
 
 ins::parse_args "$@"
 ins::require
+ins::check_github_auth
 ins::fetch_address_book
 ins::pick_user
 ins::preflight
