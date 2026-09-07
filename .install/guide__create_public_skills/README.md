@@ -1,5 +1,8 @@
-## Instructions for Creating a Skill Repo to Share your Skills
+## Instructions for Creating Skill Repositories
 
-- Go to your github account
-- Create a github repo called `public_skills`, set public, save, make `private_skills`, set private. save your future time.
-- Share your `public_skills` url, which looks like `https://github.com/<username>/public_skills.git`
+1. Create two GitHub repositories:
+    - `public_skills` (public)
+    - `private_skills` (private)
+
+2. Share the public repository URL with the admin:
+    - `https://github.com/<username>/public_skills.git`
