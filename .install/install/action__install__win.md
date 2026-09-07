@@ -64,5 +64,7 @@ rewritten. A `%USERPROFILE%\.claude\skills\upskill` that is a junction is treate
 checkout and left alone.
 
 > Requires [Git for Windows](https://git-scm.com/downloads/win). Python is **not** needed.
+> Also requires the GitHub CLI, logged in: `gh auth login --hostname github.com --git-protocol https`
+> (install with `winget install --id GitHub.cli` - see `guide__create_public_skills/README.md`).
 
 Then say `use upskill` in Claude Code or Codex.

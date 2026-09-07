@@ -61,6 +61,7 @@ Re-running is safe: existing folders and clones are kept, only the config and th
 rewritten. A `~/.claude/skills/upskill` that is a symlink is treated as somebody's own checkout and
 left alone.
 
-> Requires `git`, `python3` and `curl`.
+> Requires `git`, `python3`, `curl`, and the GitHub CLI logged in:
+> `gh auth login --hostname github.com --git-protocol https` (install `gh` per your OS - see `guide__create_public_skills/README.md`).
 
 Then say `use upskill` in Claude Code or Codex.
