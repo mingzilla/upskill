@@ -16,7 +16,7 @@ Install the GitHub CLI if it is not already there:
 
 If your package manager does not offer it, follow https://cli.github.com
 
-Close and reopen the terminal after installing so `gh` is on your PATH, then log in:
+Restart the terminal (close it and open a new one) after installing so `gh` is on your PATH, then log in:
 
 ```commandline
 gh auth login --hostname github.com --git-protocol https
