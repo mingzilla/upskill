@@ -211,6 +211,7 @@ ins::clone_repos() {
 
 
 SKILL_DIR="$HOME/.claude/skills/upskill"
+IS_DEV_LINK=0
 
 # ~/.claude/skills/upskill is the install. A symlink there is someone developing upskill against
 # their own checkout - never disturb it.
@@ -218,6 +219,7 @@ ins::install_skill() {
   echo
   echo "-- skill:"
   if [[ -L "$SKILL_DIR" ]]; then
+    IS_DEV_LINK=1
     echo "  keep   $SKILL_DIR -> $(readlink "$SKILL_DIR") (a development link)"
     return 0
   fi
@@ -241,6 +243,16 @@ ins::place_address_book() {
 }
 
 ins::write_config() {
+  # A development link points at somebody's own checkout, and its config is their working setup.
+  # Writing ours into it would silently repoint their environment at this install's root - a change
+  # they never asked for and would not see until something later failed.
+  if [[ "$IS_DEV_LINK" -eq 1 ]]; then
+    echo
+    echo "-- config: kept (the skill is a development link, so its config is left alone)"
+    echo "   to use this root there, set in $(readlink "$SKILL_DIR")/upskill__user_config.json:"
+    echo "     \"skills_lib_root\": \"$ROOT\""
+    return 0
+  fi
   python3 -c 'import json,sys
 cfg = {"skills_lib_root": sys.argv[1], "address_book": "./upskill__address_book/address_book.json"}
 with open(sys.argv[2], "w") as f:

@@ -24,6 +24,7 @@ $script:SKILL_DIR = Join-Path $env:USERPROFILE '.claude\skills\upskill'
 $script:AB_RAW = ''
 $script:ME_KEY = ''
 $script:ME_REPO = ''
+$script:IS_DEV_LINK = $false
 
 function ins_err([string]$m) { [Console]::Error.WriteLine($m) }
 # a function's uncaptured output IS its return value, so any function whose result is tested must
@@ -192,6 +193,7 @@ function ins_install_skill {
     ''
     '-- skill:'
     if (ins_is_link $script:SKILL_DIR) {
+        $script:IS_DEV_LINK = $true
         "  keep   $($script:SKILL_DIR) -> $((Get-Item -LiteralPath $script:SKILL_DIR -Force).Target) (a development link)"
         return
     }
@@ -215,6 +217,17 @@ function ins_place_address_book {
 }
 
 function ins_write_config {
+    # A development link points at somebody's own checkout, and its config is their working setup.
+    # Writing ours into it would silently repoint their environment at this install's root - a
+    # change they never asked for and would not see until something later failed.
+    if ($script:IS_DEV_LINK) {
+        ''
+        '-- config: kept (the skill is a development link, so its config is left alone)'
+        $t = (Get-Item -LiteralPath $script:SKILL_DIR -Force).Target
+        "   to use this root there, set in $t\upskill__user_config.json:"
+        "     `"skills_lib_root`": `"$Root`""
+        return
+    }
     $cfg = [pscustomobject]@{
         skills_lib_root = $Root
         address_book    = './upskill__address_book/address_book.json'
