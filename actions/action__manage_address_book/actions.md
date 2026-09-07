@@ -6,9 +6,17 @@ One verb: import people into the address book you are already using.
 
 ## Import contacts (option 5)
 
-The user gives a link to someone's `address_book.json` - usually one of the books in
-`https://github.com/mingzilla/upskill__setup/tree/main/address_books`. A `blob`/`tree` github link
-works; it is converted to the raw one.
+The script takes a **url or a file path** - never raw json, which no command line survives intact.
+
+| The user gives you | Do |
+|---|---|
+| a link, usually one of the books in `https://github.com/mingzilla/upskill__setup/tree/main/address_books` | pass it straight through - a `blob`/`tree` github link is converted to the raw one |
+| a path to a `.json` file | pass it straight through |
+| **the json text itself, pasted into the chat** | save it to a file first, then import that file |
+
+For pasted text: write it verbatim to a temporary `.json` file - do not reformat it, re-key it, or
+fill in anything that looks missing - then run import on that path. If it turns out not to be an
+address book the script says so; that is the check, not your reading of it.
 
 `<upskill> import "<url|path>"`
 
