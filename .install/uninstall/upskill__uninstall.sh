@@ -53,6 +53,19 @@ uns::remove_link() {
   echo "  removed  $p"
 }
 
+# uns::is_upskill <dir> - is this folder our product? Accepts either proof:
+#   - its origin is the upskill repo (a normal customer install), or
+#   - it carries the launcher and a SKILL.md naming upskill (a clone from anywhere, incl. a local
+#     checkout). No other project has both of those at this path.
+uns::is_upskill() {
+  local d="$1" origin
+  origin="$(git -c safe.directory='*' -C "$d" remote get-url origin 2>/dev/null)"
+  [[ "$(uns::norm_repo "$origin")" == "$(uns::norm_repo "$CORE_REPO")" ]] && return 0
+  [[ -f "$d/scripts/upskill__run.sh" ]] || return 1
+  grep -qE '^name:[[:space:]]*upskill[[:space:]]*$' "$d/SKILL.md" 2>/dev/null || return 1
+  return 0
+}
+
 # uns::remove_install - delete ~/.claude/skills/upskill only when it is provably our clone
 uns::remove_install() {
   local origin
@@ -75,9 +88,12 @@ uns::remove_install() {
     echo "           delete it yourself if you are sure it is upskill" >&2
     return 0
   fi
-  origin="$(git -c safe.directory='*' -C "$SKILL_DIR" remote get-url origin 2>/dev/null)"
-  if [[ "$(uns::norm_repo "$origin")" != "$(uns::norm_repo "$CORE_REPO")" ]]; then
-    echo "  REFUSED  $SKILL_DIR is a clone of '$origin', not $CORE_REPO - left alone" >&2
+  # Identity is proved by CONTENT, not only by origin: a developer installs from a local checkout,
+  # so origin is a path on their disk rather than the github url. The fingerprint below is ours and
+  # nothing else's, and a clone of another project cannot have it.
+  if ! uns::is_upskill "$SKILL_DIR"; then
+    origin="$(git -c safe.directory='*' -C "$SKILL_DIR" remote get-url origin 2>/dev/null)"
+    echo "  REFUSED  $SKILL_DIR is a clone of '$origin' and does not look like upskill - left alone" >&2
     return 0
   fi
   rm -rf "$SKILL_DIR"

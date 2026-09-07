@@ -53,6 +53,18 @@ function uns_remove_link([string]$p) {
     "  removed  $p"
 }
 
+# is this folder our product? Accepts either proof: its origin is the upskill repo (a normal
+# customer install), or it carries the launcher and a SKILL.md naming upskill (a clone from
+# anywhere, including a local checkout). No other project has both of those at this path.
+function uns_is_upskill([string]$d) {
+    $origin = & git -c safe.directory='*' -C $d remote get-url origin 2>$null
+    if ((uns_norm_repo $origin) -eq (uns_norm_repo $CORE_REPO)) { return $true }
+    if (-not (Test-Path -LiteralPath (Join-Path $d 'scripts\upskill__run.ps1'))) { return $false }
+    $md = Join-Path $d 'SKILL.md'
+    if (-not (Test-Path -LiteralPath $md)) { return $false }
+    return [bool](Select-String -LiteralPath $md -Pattern '^name:\s*upskill\s*$' -Quiet)
+}
+
 # delete the install only when it is provably our clone
 function uns_remove_install {
     if (uns_is_link $SKILL_DIR) {
@@ -70,9 +82,9 @@ function uns_remove_install {
         uns_err '           delete it yourself if you are sure it is upskill'
         return
     }
-    $origin = & git -c safe.directory='*' -C $SKILL_DIR remote get-url origin 2>$null
-    if ((uns_norm_repo $origin) -ne (uns_norm_repo $CORE_REPO)) {
-        uns_err "  REFUSED  $SKILL_DIR is a clone of '$origin', not $CORE_REPO - left alone"; return
+    if (-not (uns_is_upskill $SKILL_DIR)) {
+        $origin = & git -c safe.directory='*' -C $SKILL_DIR remote get-url origin 2>$null
+        uns_err "  REFUSED  $SKILL_DIR is a clone of '$origin' and does not look like upskill - left alone"; return
     }
     Remove-Item -LiteralPath $SKILL_DIR -Recurse -Force
     "  removed  $SKILL_DIR"

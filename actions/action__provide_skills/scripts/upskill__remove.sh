@@ -58,8 +58,13 @@ rm::push() {
     echo "no change - \`$NAME\` was not shared"
     exit 0
   fi
-  git -c safe.directory='*' -C "$US_ME_DIR" commit -q -m "remove $NAME" \
-    || { echo "error: commit failed" >&2; exit 1; }
+  if ! git -c safe.directory='*' -C "$US_ME_DIR" commit -q -m "remove $NAME"; then
+    echo "error: commit failed" >&2
+    if [[ -z "$(git -C "$US_ME_DIR" config user.email 2>/dev/null)" ]]; then
+      echo "  git does not know who you are - set user.name and user.email" >&2
+    fi
+    exit 1
+  fi
   git -c safe.directory='*' -C "$US_ME_DIR" push -q \
     || { echo "error: push failed - check your github access" >&2; exit 1; }
 }

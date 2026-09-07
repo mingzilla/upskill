@@ -81,8 +81,16 @@ share::push() {
     echo "no change - \`$NAME\` is already shared"
     exit 0
   fi
-  git -c safe.directory='*' -C "$US_ME_DIR" commit -q -m "share $NAME${MSG:+: $MSG}" \
-    || { echo "error: commit failed" >&2; exit 1; }
+  if ! git -c safe.directory='*' -C "$US_ME_DIR" commit -q -m "share $NAME${MSG:+: $MSG}"; then
+    echo "error: commit failed" >&2
+    # by far the most common cause on a fresh machine, and git's own message is easy to miss
+    if [[ -z "$(git -C "$US_ME_DIR" config user.email 2>/dev/null)" ]]; then
+      echo "  git does not know who you are. Set it once:" >&2
+      echo "    git config --global user.name \"Your Name\"" >&2
+      echo "    git config --global user.email \"you@example.com\"" >&2
+    fi
+    exit 1
+  fi
   git -c safe.directory='*' -C "$US_ME_DIR" push -q \
     || { echo "error: push failed - check your github access for $(share::origin)" >&2; exit 1; }
 }

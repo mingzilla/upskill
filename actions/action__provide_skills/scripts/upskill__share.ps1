@@ -75,7 +75,16 @@ if ($LASTEXITCODE -eq 0) {
 }
 $commit = if ($Message) { "share $name`: $Message" } else { "share $name" }
 & git -c safe.directory='*' -C $script:US_ME_DIR commit -q -m $commit
-if ($LASTEXITCODE -ne 0) { us_exit 'error: commit failed' }
+if ($LASTEXITCODE -ne 0) {
+    us_err 'error: commit failed'
+    $who = & git -C $script:US_ME_DIR config user.email 2>$null
+    if (-not $who) {
+        us_err '  git does not know who you are. Set it once:'
+        us_err '    git config --global user.name "Your Name"'
+        us_err '    git config --global user.email "you@example.com"'
+    }
+    exit 1
+}
 & git -c safe.directory='*' -C $script:US_ME_DIR push -q
 if ($LASTEXITCODE -ne 0) { us_exit 'error: push failed - check your github access' }
 
