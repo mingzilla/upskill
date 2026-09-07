@@ -36,17 +36,20 @@ flowchart LR
     OPTION3("3. Share my XXX Skill")
     OPTION4("4. Remove my XXX shared Skill")
     OPTION5("5. Import contacts to Address Book")
+    OPTION6("6. Create an Address Book")
 
     ENTRY --> OPTION1
     ENTRY --> OPTION2
     ENTRY --> OPTION3
     ENTRY --> OPTION4
     ENTRY --> OPTION5
+    ENTRY --> OPTION6
     style OPTION1 fill: #e8f5e9
     style OPTION2 fill: #e8f5e9
     style OPTION3 fill: #e1f5fe
     style OPTION4 fill: #e1f5fe
     style OPTION5 fill: #fff3e0
+    style OPTION6 fill: #fff3e0
 ```
 
 ### Default - Shows options
@@ -198,3 +201,22 @@ Already in your address book: ming
 
 People you already have are left exactly as they are - an import never changes where your existing
 skills come from.
+
+---
+
+### 6. Create an Address Book
+
+> Use upskill to create an address book
+
+```text
+Please provide their names and github repos like so. I will create an address book and put it into `upskill__sandbox`:
+name1 https://github.com/<github_username1>/public_skills.git
+name2 https://github.com/<github_username2>/public_skills.git
+```
+
+> name1 https://github.com/<github_username1>/public_skills.git
+> ... 
+
+```text
+Address book created under <absolute_path>
+```
