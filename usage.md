@@ -36,7 +36,8 @@ flowchart LR
     OPTION3("3. Share my XXX Skill")
     OPTION4("4. Remove my XXX shared Skill")
     OPTION5("5. Import contacts to Address Book")
-    OPTION6("6. Create an Address Book")
+    OPTION6("6. Add contacts to Address Book")
+    OPTION7("7. Create an Address Book")
 
     ENTRY --> OPTION1
     ENTRY --> OPTION2
@@ -44,12 +45,14 @@ flowchart LR
     ENTRY --> OPTION4
     ENTRY --> OPTION5
     ENTRY --> OPTION6
+    ENTRY --> OPTION7
     style OPTION1 fill: #e8f5e9
     style OPTION2 fill: #e8f5e9
     style OPTION3 fill: #e1f5fe
     style OPTION4 fill: #e1f5fe
     style OPTION5 fill: #fff3e0
     style OPTION6 fill: #fff3e0
+    style OPTION7 fill: #fff3e0
 ```
 
 ### Default - Shows options
@@ -72,7 +75,8 @@ What would you like to do?
 
 Manage address books:
 5. Import contacts
-6. Create address book
+6. Add contacts to address book
+7. Create address book
 ```
 
 Members are listed alphabetically. Nothing is downloaded to show this screen, so it is instant
@@ -205,7 +209,28 @@ skills come from.
 
 ---
 
-### 6. Create an Address Book
+### 6. Add Contacts to your Address Book
+
+> Add these people to my address book: leah https://github.com/mingzilla/upskill__skills_repo__leah.git, myles https://github.com/mingzilla/upskill__skills_repo__myles.git
+
+```text
+Added: leah, myles
+Address book: <skills_lib_root>/upskill__address_book/address_book.json (2 members)
+```
+
+Writing into your own book: a person who is already there (same repo) is replaced and reported as
+Updated.
+
+> zandra https://github.com/mingzilla/upskill__skills_repo__zandra.git
+
+```text
+Added: zandra
+Address book: <skills_lib_root>/upskill__address_book/address_book.json (3 members)
+```
+
+---
+
+### 7. Create an Address Book
 
 > Use upskill to create an address book
 

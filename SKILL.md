@@ -43,9 +43,10 @@ reply. Then stop and wait - the user's next message is their selection.
 | 2 / "add <member>'s <skill>" | read `actions/action__receive_skills/action__receive_skills.md`, follow its add flow |
 | 3 / "share my <skill>"       | read `actions/action__provide_skills/action__provide_skills.md`, follow its share flow |
 | 4 / "remove my <skill>"      | read `actions/action__provide_skills/action__provide_skills.md`, follow its remove flow |
-| 5 / "import contacts"        | read `actions/action__manage_address_book/action__import_contacts.md`, follow it |
-| 6 / "create address book"    | read `actions/action__manage_address_book/action__create_address_book.md`, follow it |
-| a number from a shown list   | re-run the same list to resolve the number to a name, then continue that flow |
+| 5 / "import contacts"                | read `actions/action__manage_address_book/action__import_contacts.md`, follow it |
+| 6 / "add contacts to my address book" | read `actions/action__manage_address_book/action__add_contacts.md`, follow it |
+| 7 / "create address book"            | read `actions/action__manage_address_book/action__create_address_book.md`, follow it |
+| a number from a shown list           | re-run the same list to resolve the number to a name, then continue that flow |
 
 Paths are relative to `<this-skill>`.
 

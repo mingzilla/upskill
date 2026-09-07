@@ -23,6 +23,7 @@ run::resolve_action() {
     remove) REL=actions/action__provide_skills/scripts/upskill__remove ;;
     scan)   REL=actions/action__provide_skills/scripts/upskill__scan_secrets ;;
     import) REL=actions/action__manage_address_book/scripts/upskill__import_contacts ;;
+    add-contacts) REL=actions/action__manage_address_book/scripts/upskill__add_contacts ;;
     create) REL=actions/action__manage_address_book/scripts/upskill__create_address_book ;;
   esac
   # an unknown name is treated as a path, so an action added later works with an older launcher

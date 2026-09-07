@@ -4,7 +4,7 @@ One verb: make an address book from a list of people and their public repos.
 
 `<upskill>` is the launcher from SKILL.md. Do not run the script directly, and do not edit it.
 
-## Create address book (option 6)
+## Create address book (option 7)
 
 Ask the user for each person's name and repo. One person is enough - always pass a list:
 
