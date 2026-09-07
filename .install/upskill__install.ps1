@@ -21,6 +21,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $script:SKILL_DIR = Join-Path $env:USERPROFILE '.claude\skills\upskill'
+$script:AB_SRC   = $AddressBook
+$script:USER_IN  = $User
+$script:ROOT_IN  = $Root
 $script:AB_RAW = ''
 $script:ME_KEY = ''
 $script:ME_REPO = ''
@@ -61,18 +64,18 @@ function ins_ask([string]$question, [string]$default = '') {
 }
 
 function ins_fetch_address_book {
-    if (-not $AddressBook) { $script:AddressBook = ins_ask 'Address book url' }
-    if (-not $AddressBook) { ins_exit 'error: an address book is required (-AddressBook or UP_SKILL_ADDRESS_BOOK)' }
-    if (Test-Path -LiteralPath $AddressBook) {
-        $script:AB_RAW = Get-Content -LiteralPath $AddressBook -Raw
+    if (-not $script:AB_SRC) { $script:AB_SRC = ins_ask 'Address book url' }
+    if (-not $script:AB_SRC) { ins_exit 'error: an address book is required (-AddressBook or UP_SKILL_ADDRESS_BOOK)' }
+    if (Test-Path -LiteralPath $script:AB_SRC) {
+        $script:AB_RAW = Get-Content -LiteralPath $script:AB_SRC -Raw
     } else {
         # a github page url returns html; only the raw url returns the json
-        $url = $AddressBook -replace 'github\.com/([^/]+)/([^/]+)/(blob|tree)/', 'raw.githubusercontent.com/$1/$2/'
+        $url = $script:AB_SRC -replace 'github\.com/([^/]+)/([^/]+)/(blob|tree)/', 'raw.githubusercontent.com/$1/$2/'
         try { $script:AB_RAW = (Invoke-WebRequest -Uri $url -UseBasicParsing -ErrorAction Stop).Content }
         catch { ins_exit "error: cannot download the address book: $url" }
     }
-    try { $d = $script:AB_RAW | ConvertFrom-Json } catch { ins_exit "error: not valid json: $AddressBook" }
-    if (-not $d.users) { ins_exit "error: not an address book (no `"users`"): $AddressBook" }
+    try { $d = $script:AB_RAW | ConvertFrom-Json } catch { ins_exit "error: not valid json: $($script:AB_SRC)" }
+    if (-not $d.users) { ins_exit "error: not an address book (no `"users`"): $($script:AB_SRC)" }
 }
 
 # your entry names your public_skills repo - without it there is nothing to share to, so stop
@@ -84,15 +87,15 @@ function ins_pick_user {
                            Repo = $_.Value.repo }
     })
     $names = ($rows | ForEach-Object { $_.Name } | Sort-Object) -join ' '
-    if (-not $User) { $script:User = ins_ask "Your name - this book lists: $names" }
-    $w = "$User".Trim().ToLowerInvariant()
+    if (-not $script:USER_IN) { $script:USER_IN = ins_ask "Your name - this book lists: $names" }
+    $w = "$($script:USER_IN)".Trim().ToLowerInvariant()
     $hits = @($rows | Where-Object { $_.Name.ToLowerInvariant() -eq $w -or $_.Key.ToLowerInvariant() -eq $w })
     if ($hits.Count -gt 1) {
-        ins_err "error: '$User' matches more than one entry: $(($hits | ForEach-Object { $_.Key }) -join ', ')"
+        ins_err "error: '$($script:USER_IN)' matches more than one entry: $(($hits | ForEach-Object { $_.Key }) -join ', ')"
         ins_exit '  re-run with -User <one of those keys>'
     }
     if ($hits.Count -eq 0 -or -not $hits[0].Repo) {
-        ins_err "error: '$User' is not in this address book, so your public_skills repo is unknown"
+        ins_err "error: '$($script:USER_IN)' is not in this address book, so your public_skills repo is unknown"
         ins_err "  the book lists: $names"
         ins_exit '  create your repos first - see .install\guide__create_public_skills\README.md'
     }
@@ -113,7 +116,7 @@ function ins_preflight {
 }
 
 function ins_pick_root {
-    if ($Root) { return }
+    if ($script:ROOT_IN) { return }
     $suggested = Join-Path $env:USERPROFILE 'code\upskill__skills_lib'
     ''
     'Where should upskill__skills_lib live? Your skills and repos are kept there.'
@@ -131,16 +134,16 @@ function ins_pick_root {
     }
     '  or type a path'
     $answer = ins_ask 'Choice' '1'
-    $script:Root = if ($map.ContainsKey($answer)) { $map[$answer] } else { $answer }
-    if (-not $script:Root) { ins_exit 'error: no root chosen' }
+    $script:ROOT_IN = if ($map.ContainsKey($answer)) { $map[$answer] } else { $answer }
+    if (-not $script:ROOT_IN) { ins_exit 'error: no root chosen' }
 }
 
 function ins_make_tree {
     foreach ($d in @('private_files', 'upskill__address_book', 'upskill__sandbox\.claude\skills')) {
-        New-Item -ItemType Directory -Force -Path (Join-Path $Root $d) | Out-Null
+        New-Item -ItemType Directory -Force -Path (Join-Path $script:ROOT_IN $d) | Out-Null
     }
     # keys live here and must never reach a repo, even if someone runs git init at the root
-    $gi = Join-Path $Root '.gitignore'
+    $gi = Join-Path $script:ROOT_IN '.gitignore'
     if (-not (Test-Path -LiteralPath $gi) -or -not (Select-String -LiteralPath $gi -Pattern '^private_files/' -Quiet)) {
         Add-Content -LiteralPath $gi -Value 'private_files/'
     }
@@ -166,7 +169,7 @@ function ins_clone([string]$dir, [string]$url, [string]$label, [switch]$Optional
 function ins_clone_repos {
     ''
     '-- repos:'
-    if (-not (ins_clone (Join-Path $Root 'public_skills') $script:ME_REPO 'public_skills')) { exit 1 }
+    if (-not (ins_clone (Join-Path $script:ROOT_IN 'public_skills') $script:ME_REPO 'public_skills')) { exit 1 }
     # the guide asks for both repos at once, so try the matching private one and move on if absent.
     # private_skills is private by definition: without GIT_TERMINAL_PROMPT=0 an https clone stops
     # and waits for a username, which would hang the whole install on an optional repo.
@@ -174,8 +177,8 @@ function ins_clone_repos {
     if ($privateUrl -ne $script:ME_REPO) {
         $oldT = $env:GIT_TERMINAL_PROMPT; $oldG = $env:GCM_INTERACTIVE
         $env:GIT_TERMINAL_PROMPT = '0'; $env:GCM_INTERACTIVE = 'never'
-        if (-not (ins_clone (Join-Path $Root 'private_skills') $privateUrl 'private_skills' -Optional)) {
-            Remove-Item -LiteralPath (Join-Path $Root 'private_skills') -Recurse -Force -ErrorAction SilentlyContinue
+        if (-not (ins_clone (Join-Path $script:ROOT_IN 'private_skills') $privateUrl 'private_skills' -Optional)) {
+            Remove-Item -LiteralPath (Join-Path $script:ROOT_IN 'private_skills') -Recurse -Force -ErrorAction SilentlyContinue
             ins_err '  note: private_skills was not cloned (not created yet, or it needs a login) - nothing else is affected'
         }
         $env:GIT_TERMINAL_PROMPT = $oldT; $env:GCM_INTERACTIVE = $oldG
@@ -213,7 +216,7 @@ function ins_install_skill {
 }
 
 function ins_place_address_book {
-    $script:AB_RAW | Set-Content -LiteralPath (Join-Path $Root 'upskill__address_book\address_book.json') -NoNewline -Encoding UTF8
+    $script:AB_RAW | Set-Content -LiteralPath (Join-Path $script:ROOT_IN 'upskill__address_book\address_book.json') -NoNewline -Encoding UTF8
 }
 
 function ins_write_config {
@@ -225,11 +228,11 @@ function ins_write_config {
         '-- config: kept (the skill is a development link, so its config is left alone)'
         $t = (Get-Item -LiteralPath $script:SKILL_DIR -Force).Target
         "   to use this root there, set in $t\upskill__user_config.json:"
-        "     `"skills_lib_root`": `"$Root`""
+        "     `"skills_lib_root`": `"$($script:ROOT_IN)`""
         return
     }
     $cfg = [pscustomobject]@{
-        skills_lib_root = $Root
+        skills_lib_root = $script:ROOT_IN
         address_book    = './upskill__address_book/address_book.json'
     }
     ($cfg | ConvertTo-Json) + "`n" | Set-Content -LiteralPath (Join-Path $script:SKILL_DIR 'upskill__user_config.json') -NoNewline -Encoding UTF8
@@ -266,8 +269,8 @@ function ins_link_agents {
 function ins_report {
     ''
     '== done =='
-    "  you       $User  ($($script:ME_KEY))"
-    "  root      $Root"
+    "  you       $($script:USER_IN)  ($($script:ME_KEY))"
+    "  root      $($script:ROOT_IN)"
     "  skill     $($script:SKILL_DIR)"
     "  share to  $($script:ME_REPO)"
     ''
