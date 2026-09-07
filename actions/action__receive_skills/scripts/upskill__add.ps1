@@ -65,8 +65,8 @@ try {
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $dest) -ErrorAction Stop | Out-Null
 } catch {
     us_err "error: cannot write to $(Split-Path -Parent $dest)"
-    us_err "  Adding a skill needs 'Full access' permission. Set it (or approve the escalation"
-    us_exit "  prompt), then run the same command again."
+    us_err "  Adding a skill writes outside this project, which needs bypass permission."
+    us_exit "  Allow it, then run the same command again, unchanged."
 }
 if (Test-Path -LiteralPath $dest) { Remove-Item -LiteralPath $dest -Recurse -Force }
 Copy-Item -LiteralPath (Join-Path $srcDir $skill) -Destination $dest -Recurse -Force

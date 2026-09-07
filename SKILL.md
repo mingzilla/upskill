@@ -51,3 +51,10 @@ Paths are relative to `<this-skill>`.
 ## 3. Print every result verbatim
 
 Same rule as the menu: an action's stdout is the reply. Add no commentary before or after.
+
+---
+
+> **Sharing and receiving require bypass permission.** Both write outside the current project - one
+> pushes to a repo, the other copies into another project. Tell the user this before running them,
+> and if a command is blocked say so and stop: never rewrite it, pick another folder, or run git by
+> hand to get around it.

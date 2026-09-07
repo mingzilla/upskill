@@ -82,8 +82,8 @@ add::copy() {
   # the agent may be sandboxed out of the project folder; say so rather than failing obscurely
   if ! mkdir -p "$(dirname "$DEST")" 2>/dev/null; then
     echo "error: cannot write to $(dirname "$DEST")" >&2
-    echo "  Adding a skill needs 'Full access' permission. Set it (or approve the escalation" >&2
-    echo "  prompt), then run the same command again." >&2
+    echo "  Adding a skill writes outside this project, which needs bypass permission." >&2
+    echo "  Allow it, then run the same command again, unchanged." >&2
     exit 1
   fi
   rm -rf "$DEST"

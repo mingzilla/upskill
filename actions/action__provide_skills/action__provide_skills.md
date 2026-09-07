@@ -32,6 +32,10 @@ Search another location with `<upskill> find "<name>" --root "<dir>"` (repeatabl
 
 Pass the **path**, not the name - step 1 already resolved it. Report the result in one line.
 
+> Sharing pushes to a repo, so it needs **bypass permission**. If it is blocked, say so and stop -
+> never run `git push` yourself: the script is what knows about the secret scan, the stranded-commit
+> retry and the pool refresh.
+
 ## Remove (option 4)
 
 | User says | Run |

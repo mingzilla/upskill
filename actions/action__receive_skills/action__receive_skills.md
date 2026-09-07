@@ -33,9 +33,5 @@ Add `--agent codex` when Codex is asking, so the skill lands in `.codex/skills/`
 **No target given:** run it without `--project`. It exits **2** and prints the numbered "Where would
 you like to add this?" menu - show that verbatim and ask. Never guess a path.
 
-**Cannot write to the folder:** the agent is sandboxed out of it. Tell the user:
-
-> Adding a skill needs `Full access` permission. Set the permission to `Full access` (or approve the
-> escalation prompt), then I will run it again.
-
-Then run the same command again. Do not retry a different folder.
+> Adding a skill writes into another project, so it needs **bypass permission**. If it is blocked,
+> say so and stop - do not retry a different folder.
