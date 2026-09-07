@@ -1,4 +1,4 @@
-# action__manage_address_book
+# action__import_contacts
 
 One verb: import people into the address book you are already using.
 
