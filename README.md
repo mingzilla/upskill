@@ -28,6 +28,7 @@ flowchart LR
 
 ## Goal
 
+> Make Skills easy to share.
 > Encourages you to build your **network** for **sharing skills** and equipt your teammates' superpower.
 
 ## To the Devs
