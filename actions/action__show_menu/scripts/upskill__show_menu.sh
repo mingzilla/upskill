@@ -30,7 +30,7 @@ menu::read_book() {
 
 menu::print() {
   cat <<TXT
-You can share or receive skills with members from the active address book:
+You can share or receive skills with members from your address book:
 
 Address Book: $BOOK_NAME ($BOOK_COUNT members)$ACTIVE_MARK
 - $MEMBER_LINE

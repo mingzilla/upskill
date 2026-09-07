@@ -17,7 +17,7 @@ $books = @(Get-ChildItem -LiteralPath $script:US_POOL -Filter 'address_book*.jso
 $activeMark = if ($books.Count -gt 1) { ' - active' } else { '' }
 
 @"
-You can share or receive skills with members from the active address book:
+You can share or receive skills with members from your address book:
 
 Address Book: $bookName ($($members.Count) members)$activeMark
 - $memberLine

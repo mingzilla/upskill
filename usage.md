@@ -60,7 +60,7 @@ flowchart LR
 > /upskill
 
 ```text
-You can share or receive skills with members from the active address book:
+You can share or receive skills with members from your address book:
 
 Address Book: sandbox (3 members) - active
 - leah, ming, myles
