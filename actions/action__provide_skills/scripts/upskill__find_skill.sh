@@ -15,6 +15,7 @@ source "$SCRIPT_DIR/../../../scripts/upskill__lib.sh"
 QUERY=""
 ROOTS=()
 PWD_SKIPPED=0
+MISSING=()
 
 find::parse_args() {
   QUERY="${1:-}"; shift || true
@@ -38,8 +39,10 @@ find::default_roots() {
   else
     PWD_SKIPPED=1
   fi
+  # A root that does not exist is skipped SILENTLY unless it is named here - and "why is my private
+  # skill not found" has exactly one answer: private_skills was never cloned on this machine.
   for d in "$US_ROOT/private_skills" "$US_ROOT/public_skills"; do
-    [[ -d "$d" ]] && ROOTS+=("$d")
+    if [[ -d "$d" ]]; then ROOTS+=("$d"); else MISSING+=("$d"); fi
   done
 }
 
@@ -123,5 +126,11 @@ find::search || {
   echo "no skill found matching '$QUERY'" >&2
   echo "  looked in: ${ROOTS[*]}" >&2
   [[ "$PWD_SKIPPED" -eq 1 ]] && echo "  not in $PWD - it is not a project (no .git, .claude or .codex); pass --root to search it" >&2
+  local m
+  for m in "${MISSING[@]:-}"; do
+    [[ -n "$m" ]] || continue
+    echo "  not searched: $m does not exist on this machine" >&2
+    [[ "$m" == */private_skills ]] && echo "    clone it, or re-run the installer - it clones private_skills when you have access" >&2
+  done
   exit 1
 }

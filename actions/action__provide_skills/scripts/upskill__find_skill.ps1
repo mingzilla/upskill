@@ -22,12 +22,15 @@ if ([string]::IsNullOrWhiteSpace($Query)) { us_exit 'usage: upskill__find_skill.
 # skill as if it were mine, and sharing publishes it under my name.
 $roots = @($Root | Where-Object { $_ })
 $pwdSkipped = $false
+$missing = @()
 if ($roots.Count -eq 0) {
     $here = (Get-Location).Path
     $isProject = @('.git', '.claude', '.codex') | Where-Object { Test-Path -LiteralPath (Join-Path $here $_) }
     if ($isProject) { $roots += $here } else { $pwdSkipped = $true }
+    # A root that does not exist is skipped SILENTLY unless it is named below - and "why is my
+    # private skill not found" has exactly one answer: private_skills was never cloned here.
     foreach ($d in @((Join-Path $script:US_ROOT 'private_skills'), $script:US_ME_DIR)) {
-        if (Test-Path -LiteralPath $d) { $roots += $d }
+        if (Test-Path -LiteralPath $d) { $roots += $d } else { $missing += $d }
     }
 }
 
@@ -109,6 +112,12 @@ if ($hits.Count -eq 0) {
     us_err ("  looked in: " + ($roots -join ', '))
     if ($pwdSkipped) {
         us_err "  not in $((Get-Location).Path) - it is not a project (no .git, .claude or .codex); pass -Root to search it"
+    }
+    foreach ($m in $missing) {
+        us_err "  not searched: $m does not exist on this machine"
+        if ($m -like '*private_skills') {
+            us_err '    clone it, or re-run the installer - it clones private_skills when you have access'
+        }
     }
     exit 1
 }
