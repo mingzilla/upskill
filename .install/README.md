@@ -16,5 +16,4 @@ folder holds the pieces those guides point to:
 | `guide__create_public_skills/` | step 1 of every install - create your `public_skills` (and optional `private_skills`) repo |
 | `upskill__install.sh` / `upskill__install.ps1` | the installer every flow runs |
 | `install/action__install__linux.md` / `action__install__win.md` | self-serve run docs, for when you already know your address book url |
-| `install/custom/action__install__*.md` | run docs for a specific person or env, embedded in their guide |
 | `uninstall/` | remove the skill |
