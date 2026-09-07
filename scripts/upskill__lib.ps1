@@ -96,10 +96,28 @@ function us_sync_repo([string]$key) {
         if ($LASTEXITCODE -ne 0) { us_err "note: could not update $(us_name_of $key) - showing the local copy" }
         return $true
     }
+    # a folder with no .git is a half-finished clone from an interrupted run; git refuses to clone
+    # into it and the user has no way to know that from "cannot clone"
+    if (Test-Path -LiteralPath $dir) {
+        us_err "error: '$dir' exists but is not a git clone"
+        us_err '  an earlier fetch was interrupted - delete that folder and try again'
+        return $false
+    }
     $url = us_repo_of $key
     if (-not $url) { us_err "error: no repo url for '$key'"; return $false }
-    & git clone --quiet $url $dir 2>$null
-    if ($LASTEXITCODE -ne 0) { us_err "error: cannot clone $url"; return $false }
+    # git's own message is the only thing that says WHY - network, permission, a private repo, a
+    # sandbox with no outbound access. Never swallow it.
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    $out = & git clone --quiet $url $dir 2>&1
+    $code = $LASTEXITCODE
+    $ErrorActionPreference = $prev
+    if ($code -ne 0) {
+        us_err "error: cannot clone $url"
+        foreach ($line in @($out)) { us_err "  $line" }
+        Remove-Item -LiteralPath $dir -Recurse -Force -ErrorAction SilentlyContinue
+        return $false
+    }
     return $true
 }
 

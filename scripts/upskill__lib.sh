@@ -102,43 +102,30 @@ us::pool_dir() {
 # us::sync_repo <key> - clone it if missing, otherwise pull. Never re-clones: an existing local
 # copy is the user's, and re-cloning would throw away anything they did to it.
 us::sync_repo() {
-  local key="$1" dir url
+  local key="$1" dir url out
   dir="$(us::pool_dir "$key")"
   if [[ -d "$dir/.git" ]]; then
     git -c safe.directory='*' -C "$dir" pull --ff-only --quiet 2>/dev/null \
       || echo "note: could not update $(us::name_of "$key") - showing the local copy" >&2
     return 0
   fi
+  # a folder with no .git is a half-finished clone from an interrupted run; git refuses to clone
+  # into it and the user has no way to know that from "cannot clone"
+  if [[ -e "$dir" ]]; then
+    echo "error: '$dir' exists but is not a git clone" >&2
+    echo "  an earlier fetch was interrupted - delete that folder and try again" >&2
+    return 1
+  fi
   url="$(us::repo_of "$key")"
   [[ -n "$url" ]] || { echo "error: no repo url for '$key'" >&2; return 1; }
-  git clone --quiet "$url" "$dir" 2>/dev/null \
-    || { echo "error: cannot clone $url" >&2; return 1; }
-}
-
-# us::my_key - my own address book key, matched by the origin url of public_skills.
-# Identity comes from the repo I can push to, not from a name in the config: nothing to keep in sync.
-us::my_key() {
-  local origin
-  origin="$(git -c safe.directory='*' -C "$US_ME_DIR" remote get-url origin 2>/dev/null)"
-  [[ -n "$origin" ]] || return 1
-  python3 -c 'import json,sys
-
-def norm(u):
-    # ssh (git@host:owner/repo.git) and https (https://host/owner/repo.git) name the same repo
-    u = u.strip().rstrip("/")
-    if u.endswith(".git"):
-        u = u[:-4]
-    for p in ("git@", "https://", "http://", "ssh://"):
-        u = u.replace(p, "")
-    parts = [x for x in u.replace(":", "/").split("/") if x]
-    return "/".join(parts[-2:]).lower()
-
-ab = json.load(open(sys.argv[1]))
-want = norm(sys.argv[2])
-for k, m in ab.get("users", {}).items():
-    if norm(m.get("repo", "")) == want:
-        print(k)
-        break' "$US_AB_JSON" "$origin"
+  # git's own message is the only thing that says WHY - network, permission, a private repo, a
+  # sandbox with no outbound access. Never swallow it.
+  if ! out="$(git clone --quiet "$url" "$dir" 2>&1)"; then
+    echo "error: cannot clone $url" >&2
+    [[ -n "$out" ]] && sed 's/^/  /' <<< "$out" >&2
+    rm -rf "$dir"   # leave nothing half-written, or the next try hits the branch above
+    return 1
+  fi
 }
 
 # us::validate_skill <skill-dir> - refuse a skill that would install but never load.
