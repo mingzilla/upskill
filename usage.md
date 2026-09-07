@@ -210,14 +210,25 @@ skills come from.
 > Use upskill to create an address book
 
 ```text
-Please provide their names and github repos like so. I will create an address book and put it into `upskill__sandbox`:
-name1 https://github.com/<github_username1>/public_skills.git
-name2 https://github.com/<github_username2>/public_skills.git
+Give me each person's name and public repo url, one pair per line:
+name https://github.com/<username>/public_skills.git
 ```
 
-> name1 https://github.com/<github_username1>/public_skills.git
-> ... 
+> leah https://github.com/mingzilla/upskill__skills_repo__leah.git
+> myles https://github.com/mingzilla/upskill__skills_repo__myles.git
 
 ```text
-Address book created under <absolute_path>
+Added: leah, myles
+Address book: <skills_lib_root>/upskill__sandbox/address_book.json (2 members)
+```
+
+The draft never touches the active address book. Run it again and the new entries are merged in:
+
+> ken https://github.com/mingzilla/upskill__skills_repo__ken.git
+
+```text
+An address book already exists: <skills_lib_root>/upskill__sandbox/address_book.json
+New entries are merged in - on a matching key the new entry replaces the existing one.
+Added: ken
+Address book: <skills_lib_root>/upskill__sandbox/address_book.json (3 members)
 ```

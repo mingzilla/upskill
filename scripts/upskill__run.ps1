@@ -23,6 +23,7 @@ $MAP = @{
     'remove' = 'actions\action__provide_skills\scripts\upskill__remove'
     'scan'   = 'actions\action__provide_skills\scripts\upskill__scan_secrets'
     'import' = 'actions\action__manage_address_book\scripts\upskill__import_contacts'
+    'create' = 'actions\action__manage_address_book\scripts\upskill__create_address_book'
 }
 
 # an unknown name is treated as a path, so an action added later works with an older launcher
