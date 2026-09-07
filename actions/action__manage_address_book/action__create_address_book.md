@@ -5,7 +5,7 @@
 ## Create Address Book (option 6)
 
 - Ask user to provide a list of repos like `https://github.com/<username>/public_skills.git` and the nickname (name) of the person
-- Create a file `<skills_lib_root>/upskill__sandbox/address__book.json`
+- Create a file `<skills_lib_root>/upskill__sandbox/address_book.json`
 - Show the user the absolute path of the created file
 
 ### Format

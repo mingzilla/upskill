@@ -45,6 +45,7 @@ What would you like to do?
 
 Manage address books:
 5. Import contacts
+6. Create address book
 TXT
 }
 
