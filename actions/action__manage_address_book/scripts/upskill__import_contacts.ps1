@@ -44,7 +44,7 @@ foreach ($p in $incoming.users.PSObject.Properties) {
 }
 
 if ($added.Count -gt 0) {
-    ($book | ConvertTo-Json -Depth 20) + "`n" | Set-Content -LiteralPath $script:US_AB_JSON -NoNewline -Encoding UTF8
+    us_write_json $script:US_AB_JSON $book
 }
 
 if ($added.Count -gt 0) { 'Imported: ' + (($added | Sort-Object) -join ', ') } else { 'Imported: nothing new' }

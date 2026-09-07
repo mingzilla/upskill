@@ -14,6 +14,14 @@ $script:US_SANDBOX   = ''   # <root>\upskill__sandbox
 function us_err([string]$m) { [Console]::Error.WriteLine($m) }
 function us_exit([string]$m) { us_err $m; exit 1 }
 
+# us_write_json <path> <object> - write json WITHOUT a UTF-8 BOM. The same files are read by the
+# bash/python side (WSL), and python rejects a BOM. Set-Content -Encoding UTF8 writes a BOM on
+# Windows PowerShell 5.1, which is how a BOM gets in - never write address books that way.
+function us_write_json([string]$path, $obj) {
+    $text = ($obj | ConvertTo-Json -Depth 20) + "`n"
+    [System.IO.File]::WriteAllText($path, $text, (New-Object System.Text.UTF8Encoding($false)))
+}
+
 # being on PATH is not proof: Windows ships stubs that resolve and then fail to run
 function us_require([string]$tool) {
     $cmd = Get-Command $tool -ErrorAction SilentlyContinue

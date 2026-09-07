@@ -60,7 +60,7 @@ for name, url in pairs:
 existed = os.path.exists(target)
 if existed:
     try:
-        book = json.load(open(target))
+        book = json.load(open(target, encoding="utf-8-sig"))
     except Exception:
         print("error: the existing address book is not valid json: %s" % target, file=sys.stderr)
         sys.exit(1)

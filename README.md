@@ -1,7 +1,6 @@
 # Up Skill
 
-Up skill non-tech people so that teams can make use of AI skills to improve their work experience. 
-This skill encourages you to build your network for sharing skills and your teammates' superpower.
+Up skill **non-tech people** so that teams can make use of AI skills to improve their work experience.
 
 ```mermaid
 flowchart LR
@@ -27,9 +26,13 @@ flowchart LR
     style U2 fill: #e8f5e9
 ```
 
+## Goal
+
+> Encourages you to build your **network** for **sharing skills** and equipt your teammates' superpower.
+
 ## To the Devs
 
-> Your skill is only useful if you can share it
+> Your skills are **not useful** if they can't be shared
 
 ## For Human Readers
 

@@ -63,8 +63,7 @@ for ($i = 0; $i -lt $Pairs.Count; $i += 2) {
     $users[$key] = @{ name = $name; folder = $key; repo = $url }
 }
 
-$out = [ordered]@{ users = $users }
-($out | ConvertTo-Json -Depth 20) + "`n" | Set-Content -LiteralPath $target -NoNewline -Encoding UTF8
+us_write_json $target ([ordered]@{ users = $users })
 
 if ($added.Count -gt 0)   { $lines += 'Added: ' + (($added   | Sort-Object) -join ', ') }
 if ($updated.Count -gt 0) { $lines += 'Updated: ' + (($updated | Sort-Object) -join ', ') }

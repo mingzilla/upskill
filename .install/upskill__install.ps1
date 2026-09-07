@@ -243,7 +243,8 @@ function ins_install_skill {
 }
 
 function ins_place_address_book {
-    $script:AB_RAW | Set-Content -LiteralPath (Join-Path $script:ROOT_IN 'upskill__address_book\address_book.json') -NoNewline -Encoding UTF8
+    # write UTF-8 without a BOM - the book is read by the bash/python side (WSL), which rejects a BOM
+    [System.IO.File]::WriteAllText((Join-Path $script:ROOT_IN 'upskill__address_book\address_book.json'), $script:AB_RAW, (New-Object System.Text.UTF8Encoding($false)))
 }
 
 function ins_write_config {
@@ -262,7 +263,8 @@ function ins_write_config {
         skills_lib_root = $script:ROOT_IN
         address_book    = './upskill__address_book/address_book.json'
     }
-    ($cfg | ConvertTo-Json) + "`n" | Set-Content -LiteralPath (Join-Path $script:SKILL_DIR 'upskill__user_config.json') -NoNewline -Encoding UTF8
+    $cfgText = ($cfg | ConvertTo-Json) + "`n"
+    [System.IO.File]::WriteAllText((Join-Path $script:SKILL_DIR 'upskill__user_config.json'), $cfgText, (New-Object System.Text.UTF8Encoding($false)))
 }
 
 # Other agents read from their own folder, so each gets a junction to the one real copy. Claude is

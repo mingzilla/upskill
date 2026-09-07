@@ -17,7 +17,7 @@ ROOT=""
 uns::find_root() {
   local cfg="$SKILL_DIR/upskill__user_config.json"
   [[ -f "$cfg" ]] || return 0
-  ROOT="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("skills_lib_root",""))' "$cfg" 2>/dev/null)"
+  ROOT="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8-sig")).get("skills_lib_root",""))' "$cfg" 2>/dev/null)"
 }
 
 # owner/repo from either git@host:owner/repo.git or https://host/owner/repo.git

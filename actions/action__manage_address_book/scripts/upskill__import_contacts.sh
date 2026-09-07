@@ -29,7 +29,7 @@ imp::fetch() {
     us::require curl
     curl -fsSL "$url" -o "$INCOMING" || { echo "error: cannot download $url" >&2; exit 1; }
   fi
-  python3 -c 'import json,sys; json.load(open(sys.argv[1]))["users"]' "$INCOMING" 2>/dev/null \
+  python3 -c 'import json,sys; json.load(open(sys.argv[1], encoding="utf-8-sig"))["users"]' "$INCOMING" 2>/dev/null \
     || { echo "error: not an address book (no \"users\"): $SRC" >&2; exit 1; }
 }
 
@@ -39,8 +39,8 @@ imp::merge() {
   python3 -c 'import json,sys
 
 book_path, incoming_path = sys.argv[1], sys.argv[2]
-book = json.load(open(book_path))
-incoming = json.load(open(incoming_path))
+book = json.load(open(book_path, encoding="utf-8-sig"))
+incoming = json.load(open(incoming_path, encoding="utf-8-sig"))
 users = book.setdefault("users", {})
 
 added, existing = [], []

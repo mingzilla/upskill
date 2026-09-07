@@ -24,7 +24,7 @@ us::require() {
 # us::jget <json-file> <python-expr-on-d> - print one value read from a json file
 us::jget() {
   python3 -c 'import json,sys
-d = json.load(open(sys.argv[1]))
+d = json.load(open(sys.argv[1], encoding="utf-8-sig"))
 r = eval(sys.argv[2])
 print(r if isinstance(r, str) else json.dumps(r))' "$1" "$2"
 }
@@ -57,7 +57,7 @@ us::init() {
 # The order is not cosmetic: the user picks by the number shown, so every listing must agree.
 us::members() {
   python3 -c 'import json,sys
-ab = json.load(open(sys.argv[1]))
+ab = json.load(open(sys.argv[1], encoding="utf-8-sig"))
 rows = [(k, m.get("name", k), m.get("repo", "")) for k, m in ab.get("users", {}).items()]
 for k, n, r in sorted(rows, key=lambda x: (x[1].lower(), x[0])):
     print(k + "\t" + n + "\t" + r)' "$US_AB_JSON"
@@ -69,7 +69,7 @@ for k, n, r in sorted(rows, key=lambda x: (x[1].lower(), x[0])):
 us::key_of() {
   local want="$1" out
   out="$(python3 -c 'import json,sys
-ab = json.load(open(sys.argv[1]))
+ab = json.load(open(sys.argv[1], encoding="utf-8-sig"))
 want = sys.argv[2].strip().lower()
 hits = [k for k, m in ab.get("users", {}).items() if m.get("name", k).lower() == want or k.lower() == want]
 print("\t".join(hits))' "$US_AB_JSON" "$want")"

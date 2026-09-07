@@ -92,7 +92,7 @@ ins::fetch_address_book() {
       exit 1
     fi
   fi
-  if ! python3 -c 'import json,sys; json.load(open(sys.argv[1]))["users"]' "$AB_FILE" 2>/dev/null; then
+  if ! python3 -c 'import json,sys; json.load(open(sys.argv[1], encoding="utf-8-sig"))["users"]' "$AB_FILE" 2>/dev/null; then
     echo "error: not an address book (no \"users\") : $AB_SRC" >&2
     exit 1
   fi
@@ -102,11 +102,11 @@ ins::fetch_address_book() {
 ins::pick_user() {
   local names
   names="$(python3 -c 'import json,sys
-d = json.load(open(sys.argv[1]))
+d = json.load(open(sys.argv[1], encoding="utf-8-sig"))
 print(" ".join(sorted(m.get("name", k) for k, m in d["users"].items())))' "$AB_FILE")"
   [[ -n "$ME_NAME" ]] || ME_NAME="$(ins::ask "Your name - this book lists: $names")"
   read -r ME_KEY ME_REPO < <(python3 -c 'import json,sys
-d = json.load(open(sys.argv[1]))
+d = json.load(open(sys.argv[1], encoding="utf-8-sig"))
 want = sys.argv[2].strip().lower()
 hits = [(k, m) for k, m in d["users"].items() if m.get("name", k).lower() == want or k.lower() == want]
 if len(hits) == 1:

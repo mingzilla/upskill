@@ -53,7 +53,7 @@ for name, url in pairs:
         sys.exit(1)
 
 try:
-    book = json.load(open(book_path))
+    book = json.load(open(book_path, encoding="utf-8-sig"))
 except Exception:
     print("error: the address book is not valid json: %s" % book_path, file=sys.stderr)
     sys.exit(1)
