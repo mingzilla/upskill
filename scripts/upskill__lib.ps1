@@ -32,7 +32,7 @@ function us_load_config {
     $cfg = Join-Path $script:US_SKILL_DIR 'upskill__user_config.json'
     if (-not (Test-Path -LiteralPath $cfg)) {
         us_err "error: not configured - $cfg is missing"
-        us_exit "  run the installer: .install\upskill__install.ps1"
+        us_exit "  run the installer: .install\install\upskill__install.ps1"
     }
     $d = Get-Content -LiteralPath $cfg -Raw | ConvertFrom-Json
     $script:US_ROOT = $d.skills_lib_root

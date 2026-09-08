@@ -38,5 +38,5 @@ flowchart LR
 ## For Human Readers
 
 - Usage: [usage.md](usage.md) - the phrases to say in your AI tool (e.g. "use upskill to share `<skill-name>`")
-- Install: `https://raw.githubusercontent.com/mingzilla/upskill/main/.install/guide__install/install__starter.md`
+- Install: `https://raw.githubusercontent.com/mingzilla/upskill/main/.install/install/install__starter.md`
 - Uninstall: `https://raw.githubusercontent.com/mingzilla/upskill/main/.install/uninstall/action__uninstall.md`

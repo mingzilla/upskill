@@ -22,7 +22,7 @@ set -uo pipefail
 
 CORE_URL="https://github.com/mingzilla/upskill.git"
 CORE_BRANCH="prod"
-AB_DEFAULT="https://raw.githubusercontent.com/mingzilla/upskill/main/.install/guide__install/address_book__starter.json"
+AB_DEFAULT="https://raw.githubusercontent.com/mingzilla/upskill/main/.install/install/address_book__starter.json"
 AB_SRC="${UP_SKILL_ADDRESS_BOOK:-}"
 ROOT=""
 ME_NAME="${UP_SKILL_USER:-}"

@@ -197,7 +197,7 @@ Naming it directly works too:
 
 ### 5. Import Contacts
 
-> Import these people to my address book: https://github.com/mingzilla/upskill/blob/main/.install/guide__install/address_book__demo.json
+> Import these people to my address book: https://github.com/mingzilla/upskill/blob/main/.install/install/address_book__demo.json
 
 ```text
 Imported: leah, myles
@@ -221,10 +221,10 @@ Address book: <skills_lib_root>/upskill__address_book/address_book.json (2 membe
 Writing into your own book: a person who is already there (same repo) is replaced and reported as
 Updated.
 
-> zandra https://github.com/mingzilla/upskill__skills_repo__zandra.git
+> ken https://github.com/mingzilla/upskill__skills_repo__ken.git
 
 ```text
-Added: zandra
+Added: ken
 Address book: <skills_lib_root>/upskill__address_book/address_book.json (3 members)
 ```
 

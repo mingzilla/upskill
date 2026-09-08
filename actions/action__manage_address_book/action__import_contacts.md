@@ -10,7 +10,7 @@ The script takes a **url or a file path** - never raw json, which no command lin
 
 | The user gives you | Do |
 |---|---|
-| a link, usually one of the books in `https://github.com/mingzilla/upskill/tree/main/.install/guide__install` | pass it straight through - a `blob`/`tree` github link is converted to the raw one |
+| a link, usually one of the books in `https://github.com/mingzilla/upskill/tree/main/.install/install` | pass it straight through - a `blob`/`tree` github link is converted to the raw one |
 | a path to a `.json` file | pass it straight through |
 | **the json text itself, pasted into the chat** | save it to a file first, then import that file |
 

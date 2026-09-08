@@ -32,13 +32,13 @@ gh auth login --hostname github.com --git-protocol https
 Execute the Linux / WSL sandbox installation script:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/mingzilla/upskill/prod/.install/upskill__install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/mingzilla/upskill/prod/.install/install/upskill__install.sh | bash
 ```
 
 For Windows installation, use the below:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -c "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mingzilla/upskill/prod/.install/upskill__install.ps1)))"
+powershell -ExecutionPolicy Bypass -c "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mingzilla/upskill/prod/.install/install/upskill__install.ps1)))"
 ```
 
 ## Step 5: Sharing and Receiving

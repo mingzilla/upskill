@@ -33,7 +33,7 @@ us::load_config() {
   local cfg="$US_SKILL_DIR/upskill__user_config.json"
   if [[ ! -f "$cfg" ]]; then
     echo "error: not configured - $cfg is missing" >&2
-    echo "  run the installer: .install/upskill__install.sh" >&2
+    echo "  run the installer: .install/install/upskill__install.sh" >&2
     exit 1
   fi
   US_ROOT="$(us::jget "$cfg" 'd["skills_lib_root"]')"
