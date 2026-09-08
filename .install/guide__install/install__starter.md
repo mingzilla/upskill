@@ -8,14 +8,7 @@ https://github.com/mingzilla/upskill/blob/prod/.install/guide__create_public_ski
 - Create two repositories: `public_skills` and `private_skills`
 - Share the `public_skills` repository with Ming
 
-## Step 2: Address Book Configuration
-
-Ming will add both repositories to the sandbox address book, located at:  
-https://github.com/mingzilla/upskill__setup/blob/main/address_books/address_book__demo.json
-
-**Stop and wait**. If an LLM is executing this guide, notify the user to pause until Ming confirms the address book setup is complete.
-
-## Step 3: GitHub CLI and log in
+## Step 2: GitHub CLI and log in
 
 Your AI tool uses the GitHub CLI to push your skills, so it must be installed and logged in. Install
 `gh` if it is not there:
@@ -34,7 +27,7 @@ Restart the terminal (close it and open a new one) after installing so `gh` is o
 gh auth login --hostname github.com --git-protocol https
 ```
 
-## Step 4: Run Installation Script
+## Step 3: Run Installation Script
 
 Execute the Linux / WSL sandbox installation script:
 

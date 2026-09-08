@@ -1,4 +1,6 @@
 {
+  "my_name": "<name>",
+  "my_public_skills_repo": "https://github.com/<github_username>/public_skills.git",
   "skills_lib_root": "/home/you/code/upskill__skills_lib",
   "address_book": "./upskill__address_book/address_book.json"
 }
