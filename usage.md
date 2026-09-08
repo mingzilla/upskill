@@ -197,7 +197,7 @@ Naming it directly works too:
 
 ### 5. Import Contacts
 
-> Import these people to my address book: https://github.com/mingzilla/upskill__setup/blob/main/address_books/address_book__demo.json
+> Import these people to my address book: https://github.com/mingzilla/upskill/blob/main/.install/guide__install/address_book__demo.json
 
 ```text
 Imported: leah, myles
