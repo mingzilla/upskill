@@ -35,6 +35,11 @@ flowchart LR
 
 > Your skills are **not useful** if they can't be shared
 
+## For LLM Readers
+
+- Install: https://raw.githubusercontent.com/mingzilla/upskill/main/.install/install/install__starter.md
+- Uninstall: https://raw.githubusercontent.com/mingzilla/upskill/main/.install/uninstall/action__uninstall.md
+
 ## For Human Readers
 
 - Usage: [usage.md](usage.md) - the phrases to say in your AI tool (e.g. "use upskill to share `<skill-name>`")
