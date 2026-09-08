@@ -10,27 +10,30 @@
 # rewritten. Nothing is ever deleted.
 #
 # usage: upskill__install.sh [--address-book <url|path>] [--root <dir>] [--user <name>]
-#                            [--core <url>] [--branch <name>]
-#   --address-book  raw json url of an address book (or UP_SKILL_ADDRESS_BOOK)
+#                            [--repo <url>] [--core <url>] [--branch <name>]
+#   --address-book  raw json url of an address book (or UP_SKILL_ADDRESS_BOOK); when omitted the
+#                   starter book on github main is used, so one command always works
 #   --root          where upskill__skills_lib lives; prompted when omitted
-#   --user          your display name in that address book; prompted when omitted
+#   --user          your display name; prompted when omitted
+#   --repo          your public_skills repo url; prompted when omitted
 #   --skip-link     build the tree but do not touch ~/.claude/skills (for testing)
 #   --skip-auth-check   do not require a github login (for testing)
 set -uo pipefail
 
 CORE_URL="https://github.com/mingzilla/upskill.git"
 CORE_BRANCH="prod"
+AB_DEFAULT="https://raw.githubusercontent.com/mingzilla/upskill/main/.install/guide__install/address_book__starter.json"
 AB_SRC="${UP_SKILL_ADDRESS_BOOK:-}"
 ROOT=""
 ME_NAME="${UP_SKILL_USER:-}"
 AB_FILE=""
-ME_KEY=""
 ME_REPO=""
 SKIP_LINK=0
 SKIP_AUTH=0
 
 ins::usage() {
   echo "usage: upskill__install.sh [--address-book <url|path>] [--root <dir>] [--user <name>]" >&2
+  echo "                            [--repo <url>] [--core <url>] [--branch <name>]" >&2
   exit 2
 }
 
@@ -40,6 +43,7 @@ ins::parse_args() {
       --address-book) AB_SRC="${2:-}"; shift 2 ;;
       --root)         ROOT="${2:-}"; shift 2 ;;
       --user)         ME_NAME="${2:-}"; shift 2 ;;
+      --repo)         ME_REPO="${2:-}"; shift 2 ;;
       --core)         CORE_URL="${2:-}"; shift 2 ;;
       --branch)       CORE_BRANCH="${2:-}"; shift 2 ;;
       --skip-link)    SKIP_LINK=1; shift ;;
@@ -75,11 +79,8 @@ ins::ask() {
 }
 
 ins::fetch_address_book() {
-  [[ -n "$AB_SRC" ]] || AB_SRC="$(ins::ask 'Address book url')"
-  if [[ -z "$AB_SRC" ]]; then
-    echo "error: an address book is required (--address-book or UP_SKILL_ADDRESS_BOOK)" >&2
-    exit 1
-  fi
+  # no address book given: start everyone from the same starter book, so one command always works
+  [[ -n "$AB_SRC" ]] || AB_SRC="$AB_DEFAULT"
   AB_FILE="$(mktemp)"
   if [[ -f "$AB_SRC" ]]; then
     cp "$AB_SRC" "$AB_FILE"
@@ -98,32 +99,47 @@ ins::fetch_address_book() {
   fi
 }
 
-# your entry names your public_skills repo - without it there is nothing to share to, so stop
-ins::pick_user() {
-  local names
-  names="$(python3 -c 'import json,sys
-d = json.load(open(sys.argv[1], encoding="utf-8-sig"))
-print(" ".join(sorted(m.get("name", k) for k, m in d["users"].items())))' "$AB_FILE")"
-  [[ -n "$ME_NAME" ]] || ME_NAME="$(ins::ask "Your name - this book lists: $names")"
-  read -r ME_KEY ME_REPO < <(python3 -c 'import json,sys
-d = json.load(open(sys.argv[1], encoding="utf-8-sig"))
-want = sys.argv[2].strip().lower()
-hits = [(k, m) for k, m in d["users"].items() if m.get("name", k).lower() == want or k.lower() == want]
-if len(hits) == 1:
-    print(hits[0][0], hits[0][1].get("repo", ""))
-elif len(hits) > 1:
-    print("AMBIGUOUS", " ".join(k for k, _ in hits))' "$AB_FILE" "$ME_NAME")
-  if [[ "$ME_KEY" == "AMBIGUOUS" ]]; then
-    echo "error: '$ME_NAME' matches more than one entry: $ME_REPO" >&2
-    echo "  re-run with --user <one of those keys>" >&2
+# who you are is asked for, never read from the book. The address book names the people you can
+# receive from - it says nothing about you, and you are not required to be in it. You always say
+# your display name and your public_skills repo; private_skills is derived from the repo below.
+ins::ask_identity() {
+  [[ -n "$ME_NAME" ]] || ME_NAME="$(ins::ask 'Your name (as shown to people you share with)')"
+  [[ -n "$ME_REPO" ]] || ME_REPO="$(ins::ask 'Your public_skills repo (https://github.com/<you>/public_skills.git)')"
+  if [[ -z "$ME_NAME" ]]; then
+    echo "error: no name given - pass --user <name> or answer the prompt" >&2
     exit 1
   fi
-  if [[ -z "$ME_KEY" || -z "$ME_REPO" ]]; then
-    echo "error: '$ME_NAME' is not in this address book, so your public_skills repo is unknown" >&2
-    echo "  the book lists: $names" >&2
-    echo "  create your repos first - see .install/guide__create_public_skills/README.md" >&2
+  if [[ -z "$ME_REPO" ]]; then
+    echo "error: no public_skills repo given - pass --repo <url> or answer the prompt" >&2
+    echo "  create it first - see .install/guide__create_public_skills/README.md" >&2
     exit 1
   fi
+}
+
+# your own repo is yours alone. If the loaded book also lists it (the starter book lists ming's),
+# that entry would present you as someone to receive from, under a name that is not yours - the
+# config now carries the truth. Drop any book entry whose repo is your repo before it is written.
+ins::drop_self() {
+  python3 -c 'import json,sys,re
+path, mine = sys.argv[1], sys.argv[2].strip()
+def norm(u):
+    u = u.strip().rstrip("/")
+    u = re.sub(r"\.git$", "", u).replace("git@", "")
+    for p in ("https://", "http://", "ssh://"):
+        u = u.replace(p, "")
+    return u.replace(":", "/")   # git@host:owner/repo.git and https both end as host/owner/repo
+m = norm(mine)
+if not m:
+    sys.exit(0)
+d = json.load(open(path, encoding="utf-8-sig"))
+users = d.get("users", {})
+mine_keys = [k for k, v in users.items() if norm(v.get("repo", "")) == m]
+for k in mine_keys:
+    del users[k]
+if mine_keys:
+    with open(path, "w") as f:
+        json.dump(d, f, indent=2)
+        f.write("\n")' "$AB_FILE" "$ME_REPO"
 }
 
 # Being logged in is not optional. Cloning private_skills needs it, and sharing - the whole point -
@@ -222,9 +238,9 @@ ins::clone_repos() {
   echo
   echo "-- repos:"
   ins::clone "$ROOT/public_skills" "$ME_REPO" "public_skills" || exit 1
-  # the guide asks for both repos at once, so try the matching private one and move on if absent.
-  # private_skills is private by definition: without GIT_TERMINAL_PROMPT=0 an https clone stops and
-  # waits for a username, which would hang the whole install on a repo that is optional anyway.
+  # public_skills.git is asked for, so the matching private one is derived from it and cloned only
+  # if it exists. private_skills is private by definition: without GIT_TERMINAL_PROMPT=0 an https
+  # clone stops and waits for a username, which would hang the whole install on an optional repo.
   local private_url="${ME_REPO%public_skills.git}private_skills.git"
   if [[ "$private_url" != "$ME_REPO" ]]; then
     # never ask anybody anything: credential.interactive=false stops a credential helper opening a
@@ -268,6 +284,7 @@ ins::install_skill() {
 }
 
 ins::place_address_book() {
+  ins::drop_self
   cp "$AB_FILE" "$ROOT/upskill__address_book/address_book.json"
 }
 
@@ -279,14 +296,18 @@ ins::write_config() {
     echo
     echo "-- config: kept (the skill is a development link, so its config is left alone)"
     echo "   to use this root there, set in $(readlink "$SKILL_DIR")/upskill__user_config.json:"
+    echo "     \"my_name\": \"$ME_NAME\", \"my_public_skills_repo\": \"$ME_REPO\","
     echo "     \"skills_lib_root\": \"$ROOT\""
     return 0
   fi
   python3 -c 'import json,sys
-cfg = {"skills_lib_root": sys.argv[1], "address_book": "./upskill__address_book/address_book.json"}
-with open(sys.argv[2], "w") as f:
+cfg = {"my_name": sys.argv[1],
+       "my_public_skills_repo": sys.argv[2],
+       "skills_lib_root": sys.argv[3],
+       "address_book": "./upskill__address_book/address_book.json"}
+with open(sys.argv[4], "w") as f:
     json.dump(cfg, f, indent=2)
-    f.write("\n")' "$ROOT" "$SKILL_DIR/upskill__user_config.json"
+    f.write("\n")' "$ME_NAME" "$ME_REPO" "$ROOT" "$SKILL_DIR/upskill__user_config.json"
 }
 
 # Other agents read from their own folder, so each gets a link to the one real copy. Claude is the
@@ -311,7 +332,7 @@ ins::link_agents() {
 ins::report() {
   echo
   echo "== done =="
-  echo "  you       $ME_NAME  ($ME_KEY)"
+  echo "  you       $ME_NAME"
   echo "  root      $ROOT"
   echo "  skill     $SKILL_DIR"
   echo "  share to  $ME_REPO"
@@ -323,7 +344,7 @@ ins::parse_args "$@"
 ins::require
 ins::check_github_auth
 ins::fetch_address_book
-ins::pick_user
+ins::ask_identity
 ins::preflight
 ins::pick_root
 ins::make_tree

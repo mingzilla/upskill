@@ -9,11 +9,17 @@
 # create a symlink at all.
 #
 # usage: powershell -NoProfile -ExecutionPolicy Bypass -File upskill__install.ps1
-#          [-AddressBook <url|path>] [-Root <dir>] [-User <name>] [-Branch <name>] [-SkipLink]
+#          [-AddressBook <url|path>] [-Root <dir>] [-User <name>] [-Repo <url>]
+#          [-Branch <name>] [-SkipLink]
+#   -AddressBook    when omitted the starter book on github main is used, so one command always works
+#   -Root           where upskill__skills_lib lives; prompted when omitted
+#   -User           your display name; prompted when omitted
+#   -Repo           your public_skills repo url; prompted when omitted
 param(
     [string]$AddressBook = $env:UP_SKILL_ADDRESS_BOOK,
     [string]$Root = '',
     [string]$User = $env:UP_SKILL_USER,
+    [string]$Repo = '',
     [string]$Core = 'https://github.com/mingzilla/upskill.git',
     [string]$Branch = 'prod',
     [switch]$SkipLink,
@@ -22,12 +28,12 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $script:SKILL_DIR = Join-Path $env:USERPROFILE '.claude\skills\upskill'
-$script:AB_SRC   = $AddressBook
-$script:USER_IN  = $User
-$script:ROOT_IN  = $Root
+$script:AB_SRC    = $AddressBook
+$script:USER_IN   = $User
+$script:ROOT_IN   = $Root
+$script:AB_DEFAULT = 'https://raw.githubusercontent.com/mingzilla/upskill/main/.install/guide__install/address_book__starter.json'
 $script:AB_RAW = ''
-$script:ME_KEY = ''
-$script:ME_REPO = ''
+$script:ME_REPO = $Repo
 $script:IS_DEV_LINK = $false
 
 function ins_err([string]$m) { [Console]::Error.WriteLine($m) }
@@ -65,8 +71,8 @@ function ins_ask([string]$question, [string]$default = '') {
 }
 
 function ins_fetch_address_book {
-    if (-not $script:AB_SRC) { $script:AB_SRC = ins_ask 'Address book url' }
-    if (-not $script:AB_SRC) { ins_exit 'error: an address book is required (-AddressBook or UP_SKILL_ADDRESS_BOOK)' }
+    # no address book given: start everyone from the same starter book, so one command always works
+    if (-not $script:AB_SRC) { $script:AB_SRC = $script:AB_DEFAULT }
     if (Test-Path -LiteralPath $script:AB_SRC) {
         $script:AB_RAW = Get-Content -LiteralPath $script:AB_SRC -Raw
     } else {
@@ -79,29 +85,50 @@ function ins_fetch_address_book {
     if (-not $d.users) { ins_exit "error: not an address book (no `"users`"): $($script:AB_SRC)" }
 }
 
-# your entry names your public_skills repo - without it there is nothing to share to, so stop
-function ins_pick_user {
+# who you are is asked for, never read from the book. The address book names the people you can
+# receive from - it says nothing about you, and you are not required to be in it. You always say
+# your display name and your public_skills repo; private_skills is derived from the repo below.
+function ins_ask_identity {
+    if (-not $script:USER_IN) { $script:USER_IN = ins_ask 'Your name (as shown to people you share with)' }
+    if (-not $script:ME_REPO) { $script:ME_REPO = ins_ask 'Your public_skills repo (https://github.com/<you>/public_skills.git)' }
+    if (-not $script:USER_IN) {
+        ins_err 'error: no name given - pass -User <name> or answer the prompt'
+        exit 1
+    }
+    if (-not $script:ME_REPO) {
+        ins_err 'error: no public_skills repo given - pass -Repo <url> or answer the prompt'
+        ins_exit '  create it first - see .install\guide__create_public_skills\README.md'
+    }
+}
+
+# normalise git@host:owner/repo.git and https://host/owner/repo.git to host/owner/repo
+function ins_norm_repo([string]$url) {
+    if (-not $url) { return '' }
+    $u = $url.Trim().TrimEnd('/')
+    if ($u.EndsWith('.git')) { $u = $u.Substring(0, $u.Length - 4) }
+    $u = $u.Replace('git@', '')
+    foreach ($p in @('https://', 'http://', 'ssh://')) { $u = $u.Replace($p, '') }
+    $u.Replace(':', '/')
+}
+
+# your own repo is yours alone. If the loaded book also lists it (the starter book lists ming's),
+# that entry would present you as someone to receive from, under a name that is not yours - the
+# config now carries the truth. Drop any book entry whose repo is your repo before it is written.
+function ins_drop_self {
+    $mine = ins_norm_repo $script:ME_REPO
+    if (-not $mine) { return }
     $d = $script:AB_RAW | ConvertFrom-Json
-    $rows = @($d.users.PSObject.Properties | ForEach-Object {
-        [pscustomobject]@{ Key = $_.Name
-                           Name = $(if ($_.Value.name) { $_.Value.name } else { $_.Name })
-                           Repo = $_.Value.repo }
-    })
-    $names = ($rows | ForEach-Object { $_.Name } | Sort-Object) -join ' '
-    if (-not $script:USER_IN) { $script:USER_IN = ins_ask "Your name - this book lists: $names" }
-    $w = "$($script:USER_IN)".Trim().ToLowerInvariant()
-    $hits = @($rows | Where-Object { $_.Name.ToLowerInvariant() -eq $w -or $_.Key.ToLowerInvariant() -eq $w })
-    if ($hits.Count -gt 1) {
-        ins_err "error: '$($script:USER_IN)' matches more than one entry: $(($hits | ForEach-Object { $_.Key }) -join ', ')"
-        ins_exit '  re-run with -User <one of those keys>'
+    $keep = [ordered]@{}
+    $dropped = 0
+    if ($d.users) {
+        foreach ($p in $d.users.PSObject.Properties) {
+            if ((ins_norm_repo $p.Value.repo) -eq $mine) { $dropped++ } else { $keep[$p.Name] = $p.Value }
+        }
     }
-    if ($hits.Count -eq 0 -or -not $hits[0].Repo) {
-        ins_err "error: '$($script:USER_IN)' is not in this address book, so your public_skills repo is unknown"
-        ins_err "  the book lists: $names"
-        ins_exit '  create your repos first - see .install\guide__create_public_skills\README.md'
+    if ($dropped -gt 0) {
+        $text = ([ordered]@{ users = $keep } | ConvertTo-Json -Depth 20) + "`n"
+        $script:AB_RAW = $text
     }
-    $script:ME_KEY = $hits[0].Key
-    $script:ME_REPO = $hits[0].Repo
 }
 
 # Being logged in is not optional. Cloning private_skills needs it, and sharing - the whole point -
@@ -197,9 +224,9 @@ function ins_clone_repos {
     ''
     '-- repos:'
     if (-not (ins_clone (Join-Path $script:ROOT_IN 'public_skills') $script:ME_REPO 'public_skills')) { exit 1 }
-    # the guide asks for both repos at once, so try the matching private one and move on if absent.
-    # private_skills is private by definition: without GIT_TERMINAL_PROMPT=0 an https clone stops
-    # and waits for a username, which would hang the whole install on an optional repo.
+    # public_skills.git is asked for, so the matching private one is derived from it and cloned only
+    # if it exists. private_skills is private by definition: without GIT_TERMINAL_PROMPT=0 an https
+    # clone stops and waits for a username, which would hang the whole install on an optional repo.
     $privateUrl = $script:ME_REPO -replace 'public_skills\.git$', 'private_skills.git'
     if ($privateUrl -ne $script:ME_REPO) {
         $oldT = $env:GIT_TERMINAL_PROMPT; $oldG = $env:GCM_INTERACTIVE
@@ -243,6 +270,7 @@ function ins_install_skill {
 }
 
 function ins_place_address_book {
+    ins_drop_self
     # write UTF-8 without a BOM - the book is read by the bash/python side (WSL), which rejects a BOM
     [System.IO.File]::WriteAllText((Join-Path $script:ROOT_IN 'upskill__address_book\address_book.json'), $script:AB_RAW, (New-Object System.Text.UTF8Encoding($false)))
 }
@@ -256,12 +284,15 @@ function ins_write_config {
         '-- config: kept (the skill is a development link, so its config is left alone)'
         $t = (Get-Item -LiteralPath $script:SKILL_DIR -Force).Target
         "   to use this root there, set in $t\upskill__user_config.json:"
+        "     `"my_name`": `"$($script:USER_IN)`", `"my_public_skills_repo`": `"$($script:ME_REPO)`","
         "     `"skills_lib_root`": `"$($script:ROOT_IN)`""
         return
     }
-    $cfg = [pscustomobject]@{
-        skills_lib_root = $script:ROOT_IN
-        address_book    = './upskill__address_book/address_book.json'
+    $cfg = [ordered]@{
+        my_name               = $script:USER_IN
+        my_public_skills_repo = $script:ME_REPO
+        skills_lib_root       = $script:ROOT_IN
+        address_book          = './upskill__address_book/address_book.json'
     }
     $cfgText = ($cfg | ConvertTo-Json) + "`n"
     [System.IO.File]::WriteAllText((Join-Path $script:SKILL_DIR 'upskill__user_config.json'), $cfgText, (New-Object System.Text.UTF8Encoding($false)))
@@ -298,7 +329,7 @@ function ins_link_agents {
 function ins_report {
     ''
     '== done =='
-    "  you       $($script:USER_IN)  ($($script:ME_KEY))"
+    "  you       $($script:USER_IN)"
     "  root      $($script:ROOT_IN)"
     "  skill     $($script:SKILL_DIR)"
     "  share to  $($script:ME_REPO)"
@@ -309,7 +340,7 @@ function ins_report {
 ins_require
 ins_check_github_auth
 ins_fetch_address_book
-ins_pick_user
+ins_ask_identity
 ins_preflight
 ins_pick_root
 ins_make_tree
