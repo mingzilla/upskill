@@ -13,10 +13,10 @@ https://github.com/mingzilla/upskill/blob/prod/.install/guide__create_public_ski
 Your AI tool uses the GitHub CLI to push your skills, so it must be installed and logged in. Install
 `gh` if it is not there:
 
-| OS | Install command |
-|---|---|
-| Windows | `winget install --id GitHub.cli` |
-| macOS | `brew install gh` |
+| OS                    | Install command                          |
+|-----------------------|------------------------------------------|
+| Windows               | `winget install --id GitHub.cli`         |
+| macOS                 | `brew install gh`                        |
 | Debian / Ubuntu / WSL | `sudo apt update && sudo apt install gh` |
 
 If your package manager lacks it, follow https://cli.github.com
@@ -29,16 +29,29 @@ gh auth login --hostname github.com --git-protocol https
 
 ## Step 3: Run Installation Script
 
-Execute the Linux / WSL sandbox installation script:
+### Linux / WSL:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mingzilla/upskill/prod/.install/install/upskill__install.sh | bash
 ```
 
-For Windows installation, use the below:
+### Windows:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -c "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mingzilla/upskill/prod/.install/install/upskill__install.ps1)))"
+```
+
+### Linux / WSL - Demo (loads the demo address book):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mingzilla/upskill/prod/.install/install/upskill__install.sh \
+  | UP_SKILL_ADDRESS_BOOK=https://raw.githubusercontent.com/mingzilla/upskill/main/.install/install/address_book__demo.json bash
+```
+
+### Windows - Demo (loads the demo address book):
+
+```powershell
+powershell -ExecutionPolicy Bypass -c "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mingzilla/upskill/prod/.install/install/upskill__install.ps1))) -AddressBook 'https://raw.githubusercontent.com/mingzilla/upskill/main/.install/install/address_book__demo.json'"
 ```
 
 ## Step 5: Sharing and Receiving
