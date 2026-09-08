@@ -29,7 +29,7 @@ gh auth login --hostname github.com --git-protocol https
 
 ## Step 3: Run Installation Script
 
-### Linux / WSL:
+### Linux / WSL / macOS:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mingzilla/upskill/prod/.install/install/upskill__install.sh | bash
@@ -41,7 +41,7 @@ curl -fsSL https://raw.githubusercontent.com/mingzilla/upskill/prod/.install/ins
 powershell -ExecutionPolicy Bypass -c "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mingzilla/upskill/prod/.install/install/upskill__install.ps1)))"
 ```
 
-### Linux / WSL - Demo (loads the demo address book):
+### Linux / WSL / macOS - Demo (loads the demo address book):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mingzilla/upskill/prod/.install/install/upskill__install.sh \
