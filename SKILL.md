@@ -7,56 +7,42 @@ description: Share your skills, receive skills from members in an address book, 
 
 Invoked when the user says "use upskill ...", "/upskill", or asks what upskill can do.
 
-## 0. Running scripts
+## Run it
 
-**Pick the shell once, from the OS you are already on. Do not probe for it.** Every script ships as
-a `.sh` and a `.ps1` doing the same job - run only the one for your OS. `<this-skill>` is the folder
-holding this SKILL.md:
+Every action goes through one launcher, which resolves short names and self-updates on prod. Pick
+the shell once, from the OS you are on - never probe, never run the other variant:
 
 | You are on | Run |
 |---|---|
 | mac / linux / WSL | `bash <this-skill>/scripts/upskill__run.sh <action> [args]` |
 | native Windows | `powershell -NoProfile -ExecutionPolicy Bypass -File <this-skill>\scripts\upskill__run.ps1 <action> [args]` |
 
-written `<upskill> <action>` below.
+Written `<upskill> <action>` below. Never run an action script directly, never edit one, never run
+git yourself - a failing script is reported and you stop. If a needed name is missing (member,
+skill, folder), ask for it - never guess.
 
-| Rule | |
+## Route
+
+Match the user's intent to a row - they speak naturally ("share my xxx skill", "add ming's
+say_hello skill") or pick a number from the menu just shown; both land on the same row.
+
+| They say | Do |
 |---|---|
-| Do not probe | Never test whether bash, python or git exists - the script says so if not |
-| Do not run the other variant "to see" | On Windows the `.sh` fails, and that is expected, not a problem to solve |
-| Do not improvise git | Every git operation belongs to a script |
-| Do not edit scripts | A failing script is reported to the user, not patched |
-| On failure | Print the error and stop |
-
-## 1. Show the menu
-
-Run `<upskill> menu`, then print its stdout **verbatim as the whole reply**: no heading, no
-"Here is", no re-stating the address book, no reformatting into a table. The printed text IS the
-reply. Then stop and wait - the user's next message is their selection.
-
-## 2. Route the selection
-
-| Pick / phrase                | Do |
-|------------------------------|---|
-| menu, help, repeat           | `<upskill> menu` again |
-| 1 / "show <member>'s skills" | `<upskill> list <member>` - ask which member if none named |
-| 2 / "add <member>'s <skill>" | read `actions/action__receive_skills/action__receive_skills.md`, follow its add flow |
-| 3 / "share my <skill>"       | read `actions/action__provide_skills/action__provide_skills.md`, follow its share flow |
-| 4 / "remove my <skill>"      | read `actions/action__provide_skills/action__provide_skills.md`, follow its remove flow |
-| 5 / "import contacts"                | read `actions/action__manage_address_book/action__import_contacts.md`, follow it |
-| 6 / "add contacts to my address book" | read `actions/action__manage_address_book/action__add_contacts.md`, follow it |
-| 7 / "create address book"            | read `actions/action__manage_address_book/action__create_address_book.md`, follow it |
-| a number from a shown list           | re-run the same list to resolve the number to a name, then continue that flow |
+| `/upskill`, "menu", "help", or an intent too vague to route | `<upskill> menu` - print its stdout verbatim, then stop and wait for their pick |
+| "show \<member\>'s skills" | read `actions/action__receive_skills/action__receive_skills.md` - show flow |
+| "add \<member\>'s \<skill\> \[to ...\]" | read `actions/action__receive_skills/action__receive_skills.md` - add flow |
+| "share my \<skill\>" | read `actions/action__provide_skills/action__provide_skills.md` - share flow |
+| "remove my \<skill\>" | read `actions/action__provide_skills/action__provide_skills.md` - remove flow |
+| "import contacts" | read `actions/action__manage_address_book/action__import_contacts.md` |
+| "add contacts to my address book" | read `actions/action__manage_address_book/action__add_contacts.md` |
+| "create an address book" | read `actions/action__manage_address_book/action__create_address_book.md` |
+| a number after a list was shown | the nth of that list - pass the number to the flow that printed it |
 
 Paths are relative to `<this-skill>`.
 
-## 3. Print every result verbatim
+## Output
 
-Same rule as the menu: an action's stdout is the reply. Add no commentary before or after.
+An action's stdout IS the reply. Print it verbatim - no heading, no "here is", no reformatting, no
+commentary before or after. After the menu, stop and wait for the user's selection.
 
----
-
-> **Sharing and receiving require bypass permission.** Both write outside the current project - one
-> pushes to a repo, the other copies into another project. Tell the user this before running them,
-> and if a command is blocked say so and stop: never rewrite it, pick another folder, or run git by
-> hand to get around it.
+> REQUIRES `bypass permission` or `full access` - this skill operates on external folders
