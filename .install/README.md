@@ -5,7 +5,7 @@ person's address book, so the guide is per-person. Give an AI tool the raw url o
 it take the person through it:
 
 ```text
-https://raw.githubusercontent.com/mingzilla/upskill__setup/main/guide__install__upskill/install__<name>.md
+https://raw.githubusercontent.com/mingzilla/upskill/main/.install/guide__install/install__starter.md
 ```
 
 The guides live in `upskill__setup`, next to the address books they use - not in this repo. This
