@@ -5,7 +5,7 @@
 
 us_init
 
-# address_book__sandbox.json -> sandbox; address_book.json -> default
+# address_book__demo.json -> sandbox; address_book.json -> default
 $base = [IO.Path]::GetFileNameWithoutExtension($script:US_AB_JSON)
 $bookName = if ($base -like 'address_book__*') { $base.Substring('address_book__'.Length) } else { 'default' }
 

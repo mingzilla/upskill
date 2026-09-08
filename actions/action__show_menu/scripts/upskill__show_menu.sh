@@ -12,7 +12,7 @@ BOOK_COUNT=0
 MEMBER_LINE=""
 ACTIVE_MARK=""
 
-# address_book__sandbox.json -> sandbox; address_book.json -> default
+# address_book__demo.json -> sandbox; address_book.json -> default
 menu::read_book() {
   local base
   base="$(basename "$US_AB_JSON" .json)"

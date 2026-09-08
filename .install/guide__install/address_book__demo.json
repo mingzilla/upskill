@@ -1,0 +1,19 @@
+{
+  "users": {
+    "mingzilla__upskill__skills_repo__leah": {
+      "name": "leah",
+      "folder": "mingzilla__upskill__skills_repo__leah",
+      "repo": "https://github.com/mingzilla/upskill__skills_repo__leah.git"
+    },
+    "mingzilla__upskill__skills_repo__myles": {
+      "name": "myles",
+      "folder": "mingzilla__upskill__skills_repo__myles",
+      "repo": "https://github.com/mingzilla/upskill__skills_repo__myles.git"
+    },
+    "mingzilla__public_skills": {
+      "name": "ming",
+      "folder": "mingzilla__public_skills",
+      "repo": "https://github.com/mingzilla/public_skills.git"
+    }
+  }
+}
