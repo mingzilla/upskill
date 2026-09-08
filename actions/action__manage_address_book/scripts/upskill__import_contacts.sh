@@ -34,17 +34,28 @@ imp::fetch() {
 }
 
 # merge by key. A key already present is left exactly as it is - the local entry is the user's,
-# and an import must never rewrite where their skills come from.
+# and an import must never rewrite where their skills come from. Whoever is me is skipped: the
+# book I import from may also list my own repo, but I am never a member I import.
 imp::merge() {
-  python3 -c 'import json,sys
+  python3 -c 'import json,re,sys
 
-book_path, incoming_path = sys.argv[1], sys.argv[2]
+book_path, incoming_path, my_repo = sys.argv[1], sys.argv[2], sys.argv[3]
 book = json.load(open(book_path, encoding="utf-8-sig"))
 incoming = json.load(open(incoming_path, encoding="utf-8-sig"))
 users = book.setdefault("users", {})
 
+def norm(u):
+    u = u.strip().rstrip("/")
+    u = re.sub(r"\.git$", "", u).replace("git@", "")
+    for p in ("https://", "http://", "ssh://"):
+        u = u.replace(p, "")
+    return u.replace(":", "/").lower()
+
+mine = norm(my_repo)
 added, existing = [], []
 for key, member in incoming.get("users", {}).items():
+    if mine and norm(member.get("repo", "")) == mine:
+        continue   # my own entry - never import myself
     if key in users:
         existing.append(users[key].get("name", key))
     else:
@@ -67,7 +78,7 @@ if existing:
     print("Already in your address book: " + ", ".join(sorted(existing)))
 for name, keys in sorted(clashes.items()):
     print("Name clash - \"" + name + "\" is used by: " + ", ".join(sorted(keys)))
-' "$US_AB_JSON" "$INCOMING"
+' "$US_AB_JSON" "$INCOMING" "$US_MY_REPO"
 }
 
 us::init

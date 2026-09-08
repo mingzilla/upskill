@@ -10,6 +10,7 @@ US_AB_JSON=""     # active address book
 US_POOL=""        # <root>/upskill__address_book - one clone per member repo
 US_ME_DIR=""      # <root>/public_skills - the only repo I write to
 US_SANDBOX=""     # <root>/upskill__sandbox
+US_MY_REPO=""     # my public_skills repo from the config - how "me" is recognised
 
 US_SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -43,6 +44,8 @@ us::load_config() {
   US_POOL="$US_ROOT/upskill__address_book"
   US_ME_DIR="$US_ROOT/public_skills"
   US_SANDBOX="$US_ROOT/upskill__sandbox"
+  # may be absent in a config written before the field existed - '' means "no self to exclude"
+  US_MY_REPO="$(us::jget "$cfg" 'd.get("my_public_skills_repo", "")')"
 }
 
 us::init() {

@@ -31,9 +31,20 @@ if (-not $book.users) { $book | Add-Member -NotePropertyName users -NoteProperty
 $added = @()
 $existing = @()
 # merge by key. A key already present is left exactly as it is - the local entry is the user's,
-# and an import must never rewrite where their skills come from.
+# and an import must never rewrite where their skills come from. Whoever is me is skipped: the
+# book I import from may also list my own repo, but I am never a member I import.
+function NormRepo([string]$u) {
+    if (-not $u) { return '' }
+    $u = $u.Trim().TrimEnd('/')
+    if ($u.EndsWith('.git')) { $u = $u.Substring(0, $u.Length - 4) }
+    $u = $u.Replace('git@', '')
+    foreach ($p in @('https://', 'http://', 'ssh://')) { $u = $u.Replace($p, '') }
+    $u.Replace(':', '/').ToLowerInvariant()
+}
+$mine = NormRepo $script:US_MY_REPO
 foreach ($p in $incoming.users.PSObject.Properties) {
     $name = if ($p.Value.name) { $p.Value.name } else { $p.Name }
+    if ($mine -and (NormRepo $p.Value.repo) -eq $mine) { continue }   # my own entry - never import myself
     if ($book.users.PSObject.Properties.Name -contains $p.Name) {
         $cur = $book.users.($p.Name)
         $existing += $(if ($cur.name) { $cur.name } else { $p.Name })

@@ -10,6 +10,7 @@ $script:US_AB_JSON   = ''   # active address book
 $script:US_POOL      = ''   # <root>\upskill__address_book - one clone per member repo
 $script:US_ME_DIR    = ''   # <root>\public_skills - the only repo I write to
 $script:US_SANDBOX   = ''   # <root>\upskill__sandbox
+$script:US_MY_REPO   = ''   # my public_skills repo from the config - how "me" is recognised
 
 function us_err([string]$m) { [Console]::Error.WriteLine($m) }
 function us_exit([string]$m) { us_err $m; exit 1 }
@@ -41,6 +42,8 @@ function us_load_config {
     $script:US_POOL    = Join-Path $script:US_ROOT 'upskill__address_book'
     $script:US_ME_DIR  = Join-Path $script:US_ROOT 'public_skills'
     $script:US_SANDBOX = Join-Path $script:US_ROOT 'upskill__sandbox'
+    # may be absent in a config written before the field existed - '' means "no self to exclude"
+    $script:US_MY_REPO = [string]$d.my_public_skills_repo
 }
 
 function us_init {
