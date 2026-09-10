@@ -142,7 +142,7 @@ or anywhere else you keep skills - a folder holding a `SKILL.md` is a skill.
 ```text
 Found:
 1. core__rule__make_concise
-   /home/you/code/upskill__skills_lib/private_skills/core__base_skills/.claude/skills/core__rule__make_concise
+   /home/you/code/upskill__skills_lib/private_skills/core__unit_skills/.claude/skills/core__rule__make_concise
 ```
 
 When the name is close but not exact, or matches more than one folder, you are asked which:
@@ -150,7 +150,7 @@ When the name is close but not exact, or matches more than one folder, you are a
 ```text
 Which skill did you mean?
 1. core__coding__sh
-   /home/you/code/upskill__skills_lib/private_skills/core__base_skills/.claude/skills/core__coding__sh
+   /home/you/code/upskill__skills_lib/private_skills/core__unit_skills/.claude/skills/core__coding__sh
 2. coding__sh
    /home/you/code/upskill__skills_lib/public_skills/coding__sh
 ```
