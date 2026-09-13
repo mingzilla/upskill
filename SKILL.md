@@ -37,3 +37,5 @@ action script directly or edit one, and never run git yourself. If a needed name
 Paths are relative to `<this-skill>`.
 
 An action's stdout IS the reply - print it verbatim, no commentary before or after.
+
+Decisions and WHY are in `_meta/decisions.md` to avoid token cost when using this skill.
