@@ -30,6 +30,19 @@ share::resolve_src() {
     for d in "$US_ROOT/private_skills/$WANT" "$US_ROOT/private_skills"/*/.claude/skills/"$WANT"; do
       [[ -d "$d" ]] && found+=("$d")
     done
+    # a project that links into private_skills reaches one folder by two paths - that is one skill,
+    # not a choice, so compare the real directory rather than the path that led to it
+    local p real uniq="" out=()
+    for p in "${found[@]}"; do
+      real="$(cd "$p" 2>/dev/null && pwd -P)" || real="$p"
+      [[ -n "$real" ]] || real="$p"
+      case "$uniq" in
+        *"|$real|"*) continue ;;
+      esac
+      uniq="$uniq|$real|"
+      out+=("$real")
+    done
+    found=("${out[@]}")
     if [[ "${#found[@]}" -eq 0 ]]; then
       echo "error: skill not found: '$WANT'" >&2
       echo "  give a folder path, or a skill name in this project or in private_skills" >&2

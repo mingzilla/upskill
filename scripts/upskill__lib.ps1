@@ -141,6 +141,8 @@ function us_my_key {
     if (-not $origin) { return $null }
     $norm = { param($u)
         # ssh (git@host:owner/repo.git) and https (https://host/owner/repo.git) name the same repo
+        # an entry with no repo is "" in the bash twin (m.get("repo", "")) - $null.Trim() would throw
+        if (-not $u) { return '' }
         $u = $u.Trim().TrimEnd('/')
         if ($u.EndsWith('.git')) { $u = $u.Substring(0, $u.Length - 4) }
         foreach ($p in @('git@', 'https://', 'http://', 'ssh://')) { $u = $u.Replace($p, '') }

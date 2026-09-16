@@ -69,7 +69,14 @@ try {
     us_exit "  Allow it, then run the same command again, unchanged."
 }
 if (Test-Path -LiteralPath $dest) { Remove-Item -LiteralPath $dest -Recurse -Force }
-Copy-Item -LiteralPath (Join-Path $srcDir $skill) -Destination $dest -Recurse -Force
+# $dest was just deleted, so an unchecked failure here would install nothing (or a partial folder)
+# and still report success. Mirror the bash twin: fail loudly.
+try {
+    Copy-Item -LiteralPath (Join-Path $srcDir $skill) -Destination $dest -Recurse -Force -ErrorAction Stop
+} catch {
+    us_err "error: copy failed: $dest"
+    exit 1
+}
 
 # a broken SKILL.md installs silently and then never loads - the receiver should hear it now
 if (-not (us_validate_skill $dest)) {

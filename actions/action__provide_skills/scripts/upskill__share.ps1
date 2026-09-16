@@ -71,7 +71,14 @@ share_sync_origin
 
 $dest = Join-Path $script:US_ME_DIR $name
 if (Test-Path -LiteralPath $dest) { Remove-Item -LiteralPath $dest -Recurse -Force }
-Copy-Item -LiteralPath $src -Destination $dest -Recurse -Force
+# $dest was just deleted, so an unchecked failure here stages a DELETION of the skill, and the run
+# would report "has been uploaded". Never let a failed copy reach `git add -A`.
+try {
+    Copy-Item -LiteralPath $src -Destination $dest -Recurse -Force -ErrorAction Stop
+} catch {
+    us_err "error: copy failed: $dest"
+    exit 1
+}
 
 # `add -A` stages the whole repo, not just what was copied, so anything an earlier direct edit left
 # behind would ride along. Roll the copy back rather than commit it.

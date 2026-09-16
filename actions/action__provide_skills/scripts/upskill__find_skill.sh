@@ -21,7 +21,7 @@ find::parse_args() {
   QUERY="${1:-}"; shift || true
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --root) ROOTS+=("${2:-}"); shift 2 ;;
+      --root) [[ -n "${2:-}" ]] || us::need --root; ROOTS+=("$2"); shift 2 ;;
       *) echo "error: unknown option: $1" >&2; exit 1 ;;
     esac
   done
@@ -126,7 +126,6 @@ find::search || {
   echo "no skill found matching '$QUERY'" >&2
   echo "  looked in: ${ROOTS[*]}" >&2
   [[ "$PWD_SKIPPED" -eq 1 ]] && echo "  not in $PWD - it is not a project (no .git, .claude or .codex); pass --root to search it" >&2
-  local m
   for m in "${MISSING[@]:-}"; do
     [[ -n "$m" ]] || continue
     echo "  not searched: $m does not exist on this machine" >&2

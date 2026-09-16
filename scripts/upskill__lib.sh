@@ -133,6 +133,40 @@ us::sync_repo() {
   fi
 }
 
+# us::my_key - my own address book key, matched by the origin url of public_skills.
+# Identity comes from the repo I can push to, not from a name in the config: nothing to keep in sync.
+us::my_key() {
+  local origin
+  origin="$(git -c safe.directory='*' -C "$US_ME_DIR" remote get-url origin 2>/dev/null)"
+  [[ -n "$origin" ]] || return 1
+  python3 -c 'import json,sys
+
+def norm(u):
+    # ssh (git@host:owner/repo.git) and https (https://host/owner/repo.git) name the same repo
+    u = u.strip().rstrip("/")
+    if u.endswith(".git"):
+        u = u[:-4]
+    for p in ("git@", "https://", "http://", "ssh://"):
+        u = u.replace(p, "")
+    parts = [x for x in u.replace(":", "/").split("/") if x]
+    return "/".join(parts[-2:]).lower()
+
+ab = json.load(open(sys.argv[1], encoding="utf-8-sig"))
+want = norm(sys.argv[2])
+for k, m in ab.get("users", {}).items():
+    if norm(m.get("repo", "")) == want:
+        print(k)
+        break' "$US_AB_JSON" "$origin"
+}
+
+# us::need <option> - stop when a value-taking option is the last token.
+# `shift 2` cannot advance when only one token is left, so the arg loop re-reads the same option for
+# ever: no output, no exit. Say what is missing instead of spinning.
+us::need() {
+  echo "error: $1 needs a value" >&2
+  exit 1
+}
+
 # us::validate_skill <skill-dir> - refuse a skill that would install but never load.
 # Only checks failures that are otherwise SILENT: broken frontmatter or a missing description means
 # the skill is simply never triggered, and the user concludes upskill is broken.

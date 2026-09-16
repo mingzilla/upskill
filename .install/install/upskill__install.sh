@@ -37,15 +37,23 @@ ins::usage() {
   exit 2
 }
 
+# ins::need <option> - stop when a value-taking option is the last token.
+# `shift 2` cannot advance when only one token is left, so the arg loop re-reads the same option for
+# ever: no output, no exit. Say what is missing instead of spinning.
+ins::need() {
+  echo "error: $1 needs a value" >&2
+  ins::usage
+}
+
 ins::parse_args() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --address-book) AB_SRC="${2:-}"; shift 2 ;;
-      --root)         ROOT="${2:-}"; shift 2 ;;
-      --user)         ME_NAME="${2:-}"; shift 2 ;;
-      --repo)         ME_REPO="${2:-}"; shift 2 ;;
-      --core)         CORE_URL="${2:-}"; shift 2 ;;
-      --branch)       CORE_BRANCH="${2:-}"; shift 2 ;;
+      --address-book) [[ -n "${2:-}" ]] || ins::need --address-book; AB_SRC="$2"; shift 2 ;;
+      --root)         [[ -n "${2:-}" ]] || ins::need --root; ROOT="$2"; shift 2 ;;
+      --user)         [[ -n "${2:-}" ]] || ins::need --user; ME_NAME="$2"; shift 2 ;;
+      --repo)         [[ -n "${2:-}" ]] || ins::need --repo; ME_REPO="$2"; shift 2 ;;
+      --core)         [[ -n "${2:-}" ]] || ins::need --core; CORE_URL="$2"; shift 2 ;;
+      --branch)       [[ -n "${2:-}" ]] || ins::need --branch; CORE_BRANCH="$2"; shift 2 ;;
       --skip-link)    SKIP_LINK=1; shift ;;
       --skip-auth-check) SKIP_AUTH=1; shift ;;
       -h|--help)      ins::usage ;;
@@ -284,8 +292,20 @@ ins::install_skill() {
 }
 
 ins::place_address_book() {
+  echo
+  echo "-- address book:"
+  # The live book is the user's: it holds everyone they added with add-contacts or import, and this
+  # installer is documented as safe to re-run and as never deleting anything. Seeding it again would
+  # discard those contacts, so an existing book wins. `import` is how a book grows; delete the file
+  # to start over from the source book.
+  if [[ -f "$ROOT/upskill__address_book/address_book.json" ]]; then
+    echo "  keep   $ROOT/upskill__address_book/address_book.json (your contacts are kept)"
+    echo "         to replace it, delete that file and re-run, or use \"import contacts\""
+    return 0
+  fi
   ins::drop_self
   cp "$AB_FILE" "$ROOT/upskill__address_book/address_book.json"
+  echo "  write  $ROOT/upskill__address_book/address_book.json"
 }
 
 ins::write_config() {

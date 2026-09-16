@@ -22,8 +22,8 @@ add::parse_args() {
   WANT="${1:-}"; shift || true
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --project) PROJECT="${2:-}"; shift 2 ;;
-      --agent)   AGENT="${2:-}"; shift 2 ;;
+      --project) [[ -n "${2:-}" ]] || us::need --project; PROJECT="$2"; shift 2 ;;
+      --agent)   [[ -n "${2:-}" ]] || us::need --agent; AGENT="$2"; shift 2 ;;
       *) echo "error: unknown option: $1" >&2; exit 1 ;;
     esac
   done

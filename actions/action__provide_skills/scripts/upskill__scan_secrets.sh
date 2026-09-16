@@ -45,7 +45,10 @@ done < <(find "${paths[@]}" -type f \
 # -I skips binaries (portable; --binary-files=without-match is GNU-only).
 scan() {
   local label="$1" pat="$2" ci="${3:-}"
-  local -a opts=(-rInoE --exclude-dir=.git)
+  # -H forces the filename on every hit. Without it grep omits it when there is exactly ONE file
+  # operand - a bare `scan <file>` - and the report shows "2:token" instead of "<path>:2", so the
+  # user cannot tell which file to fix.
+  local -a opts=(-rInoEH --exclude-dir=.git)
   [[ -n "$ci" ]] && opts+=(-i)
   grep "${opts[@]}" -e "$pat" "${paths[@]}" 2>/dev/null | while IFS= read -r hit; do
     local file line token

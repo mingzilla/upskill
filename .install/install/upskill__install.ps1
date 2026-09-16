@@ -270,9 +270,22 @@ function ins_install_skill {
 }
 
 function ins_place_address_book {
+    $book = Join-Path $script:ROOT_IN 'upskill__address_book\address_book.json'
+    ''
+    '-- address book:'
+    # The live book is the user's: it holds everyone they added with add-contacts or import, and this
+    # installer is documented as safe to re-run and as never deleting anything. Seeding it again would
+    # discard those contacts, so an existing book wins. `import` is how a book grows; delete the file
+    # to start over from the source book.
+    if (Test-Path -LiteralPath $book) {
+        "  keep   $book (your contacts are kept)"
+        '         to replace it, delete that file and re-run, or use "import contacts"'
+        return
+    }
     ins_drop_self
     # write UTF-8 without a BOM - the book is read by the bash/python side (WSL), which rejects a BOM
-    [System.IO.File]::WriteAllText((Join-Path $script:ROOT_IN 'upskill__address_book\address_book.json'), $script:AB_RAW, (New-Object System.Text.UTF8Encoding($false)))
+    [System.IO.File]::WriteAllText($book, $script:AB_RAW, (New-Object System.Text.UTF8Encoding($false)))
+    "  write  $book"
 }
 
 function ins_write_config {
