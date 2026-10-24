@@ -42,8 +42,8 @@ Go to the [latest release](https://github.com/mingzilla/upskill/releases/latest)
 | Computer | File |
 |---|---|
 | Windows | `Upskill_<version>_x64-setup.exe` |
-| Mac, Apple Silicon (M1 and newer) | `Upskill_<version>_aarch64.dmg` |
-| Mac, Intel | `Upskill_<version>_x64.dmg` |
+| Mac, Apple Silicon (M1 and newer; Apple menu, About This Mac shows "Apple M…") | `Upskill_<version>_aarch64.dmg` |
+| Mac, Intel (About This Mac shows "Intel") | `Upskill_<version>_x64.dmg` |
 | Linux | `Upskill_<version>_amd64.AppImage` or `.deb` |
 
 ## Open it the first time
@@ -53,9 +53,11 @@ These builds are not code signed yet, so your computer warns you. This is expect
 | Computer | What to do |
 |---|---|
 | Windows | The blue "Windows protected your PC" window: click **More info**, then **Run anyway**. |
-| Mac | Drag Upskill to Applications. If it says the app is "damaged", open Terminal and run `xattr -cr /Applications/Upskill.app`, then open it again. |
+| Mac | Open the `.dmg` and drag Upskill to Applications. Open Terminal and run `xattr -cr /Applications/Upskill.app`, then open it. If it still says Apple cannot check it, try to open it once, then go to System Settings, Privacy & Security, scroll down and click **Open Anyway**. |
 | Linux, AppImage | Right-click the file, Properties, allow running as a program, or run `chmod +x Upskill_*.AppImage`. Some systems also need `libfuse2`. |
 | Linux, deb | `sudo apt install ./Upskill_*.deb` |
+
+Still stuck? Open an issue with your computer, the file you downloaded, and the exact message or a screenshot.
 
 ## Set up
 
